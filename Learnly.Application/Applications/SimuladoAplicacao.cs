@@ -45,6 +45,15 @@ namespace Learnly.Application.Applications
             if (simulado == null)
                 throw new ArgumentException("Simulado não encontrado!");
 
+            // 🔴 BUSCA O SIMULADO REAL DO BANCO
+            var simuladoBanco = await _simuladoRepositorio.Obter(simulado.SimuladoId);
+
+            if (simuladoBanco == null)
+                throw new Exception("Simulado não encontrado no banco.");
+
+            if (simulado.Respostas == null || !simulado.Respostas.Any())
+                throw new Exception("Nenhuma resposta enviada.");
+
             var desempenho = new DesempenhoSimulado();
 
             foreach (var resposta in simulado.Respostas)
@@ -60,19 +69,25 @@ namespace Learnly.Application.Applications
 
                 if (resposta.Questao.AlternativaCorreta == resposta.Alternativa.Letra)
                     resposta.Alternativa.Correta = true;
-
-                desempenho.QuantidadeDeQuestoes++;
             }
-
+            
+            desempenho.QuantidadeDeQuestoes = simuladoBanco.Questoes.Count;
             desempenho.QuantidadeDeAcertos = simulado.Respostas.Count(r => r.Alternativa.Correta);
-            simulado.Desempenho = desempenho;
-            simulado.Desempenho.Feedback = await _iaService.GerarFeedbackAsync(simulado);
-            simulado.NotaFinal = (decimal)desempenho.QuantidadeDeAcertos / desempenho.QuantidadeDeQuestoes * 10;
 
-            await _simuladoRepositorio.ResponderSimulado(simulado);
-            return await _simuladoRepositorio.Obter(simulado.SimuladoId);
+            simuladoBanco.Respostas = simulado.Respostas;
+            simuladoBanco.Desempenho = desempenho;
+
+            simuladoBanco.Desempenho.Feedback =
+                await _iaService.GerarFeedbackAsync(simuladoBanco);
+
+            simuladoBanco.NotaFinal =
+                (decimal)desempenho.QuantidadeDeAcertos /
+                desempenho.QuantidadeDeQuestoes * 10;
+
+            await _simuladoRepositorio.ResponderSimulado(simuladoBanco);
+
+            return simuladoBanco;
         }
-
         public async Task<Simulado> Obter(int id)
         {
             var simuladoDominio = await _simuladoRepositorio.Obter(id);

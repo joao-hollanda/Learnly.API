@@ -64,7 +64,7 @@ namespace Learnly.Api.Controllers
                 var simuladoDominio = await _simuladoAplicacao.Obter(simuladoId);
 
                 simuladoDominio.Respostas = respostas;
-            
+
                 var simulado = await _simuladoAplicacao.ResponderSimulado(simuladoDominio);
 
                 var simuladoResposta = new SimuladoCorrigido
@@ -74,6 +74,55 @@ namespace Learnly.Api.Controllers
                 };
 
                 return Ok(simuladoResposta);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+        [HttpGet]
+        [Route("{simuladoId}")]
+
+        public async Task<IActionResult> ObterSimulado([FromRoute] int simuladoId)
+        {
+            try
+            {
+                var simulado = await _simuladoAplicacao.Obter(simuladoId);
+
+                if (simulado == null)
+                    return NotFound("Simulado não encontrado");
+
+                var dto = new SimuladoObter
+                {
+                    SimuladoId = simulado.SimuladoId,
+                    NotaFinal = simulado.NotaFinal,
+                    Data = simulado.Data,
+
+                    Questoes = simulado.Questoes.Select(sq => new QuestaoSimuladoDto
+                    {
+                        QuestaoId = sq.Questao.QuestaoId,
+                        Titulo = sq.Questao.Titulo,
+                        Disciplina = sq.Questao.Disciplina,
+                        Arquivos = sq.Questao.Arquivos,
+                        Contexto = sq.Questao.Contexto,
+                        IntroducaoAlternativa = sq.Questao.IntroducaoAlternativa,
+                        Alternativas = sq.Questao.Alternativas.Select(a => new AlternativaDto
+                        {
+                            AlternativaId = a.AlternativaId,
+                            Letra = a.Letra,
+                            Texto = a.Texto
+                        }).ToList()
+                    }).ToList(),
+
+                    Respostas = simulado.Respostas.Select(r => new RespostaSimuladoDto
+                    {
+                        QuestaoId = r.QuestaoId,
+                        AlternativaId = r.AlternativaId
+                    }).ToList()
+                };
+
+                return Ok(dto);
+
             }
             catch (Exception ex)
             {

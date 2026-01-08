@@ -8,6 +8,7 @@ namespace Learnly.Application.Interfaces
 {
     public interface ILoginAplicacao
     {
-        Task<Usuario> ValidarLogin(string nome, string senha);
+        Task<bool> ValidarLogin(string nome, string senha);
+        public string GenerateToken(int id, string email, string nome);
     }
 }

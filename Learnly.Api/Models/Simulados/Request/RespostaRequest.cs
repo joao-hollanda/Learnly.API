@@ -9,6 +9,5 @@ namespace Learnly.Api.Models.Simulados.Request
     {
         public int QuestaoId { get; set; }
         public int AlternativaId { get; set; }
-        public string Alternativa { get; set; }
     }
 }
