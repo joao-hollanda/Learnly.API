@@ -45,7 +45,6 @@ namespace Learnly.Application.Applications
             if (simulado == null)
                 throw new ArgumentException("Simulado não encontrado!");
 
-            // 🔴 BUSCA O SIMULADO REAL DO BANCO
             var simuladoBanco = await _simuladoRepositorio.Obter(simulado.SimuladoId);
 
             if (simuladoBanco == null)
@@ -96,6 +95,15 @@ namespace Learnly.Application.Applications
                 throw new Exception("Simulado não encontrado!");
 
             return simuladoDominio;
+        }
+        public async Task<List<Simulado>> Listar5(int id)
+        {
+            var usuarioDominio = await _usuarioRepositorio.Obter(id, true);
+
+            if(usuarioDominio == null)
+                throw new Exception("Usuário não encontrado");
+
+            return await _simuladoRepositorio.Listar5(id);
         }
     }
 }

@@ -76,6 +76,19 @@ namespace Learnly.Repository.Repositories
                 .FirstOrDefaultAsync(s => s.SimuladoId == simuladoId);
         }
 
+        public async Task<List<Simulado>> Listar5(int usuarioId)
+        {
+            return await _context.Simulados
+                .Include(s => s.Questoes)
+                .ThenInclude(sq => sq.Questao)
+                .ThenInclude(q => q.Alternativas)
+                .Include(s => s.Respostas)
+                .Where(s => s.UsuarioId == usuarioId)
+                .OrderByDescending(s => s.Data)
+                .Take(5)
+                .ToListAsync();
+        }
+
         public async Task<Questao> ObterQuestao(int questaoId)
         {
             return await _context.Questoes.FirstOrDefaultAsync(q => q.QuestaoId == questaoId);

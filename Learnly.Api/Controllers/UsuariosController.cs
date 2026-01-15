@@ -29,7 +29,6 @@ namespace Learnly.Api.Controllers
                     Nome = usuarioCriar.Nome,
                     Email = usuarioCriar.Email,
                     Senha = usuarioCriar.Senha,
-                    Cidade = usuarioCriar.Cidade
                 };
 
                 var usuarioId = await _usuarioAplicacao.Criar(usuarioDominio);
@@ -55,7 +54,6 @@ namespace Learnly.Api.Controllers
                     Id = usuarioDominio.Id,
                     Nome = usuarioDominio.Nome,
                     Email = usuarioDominio.Email,
-                    Cidade = usuarioDominio.Cidade
                 };
 
                 return Ok(usuarioResposta);
@@ -78,7 +76,6 @@ namespace Learnly.Api.Controllers
                     Id = u.Id,
                     Nome = u.Nome,
                     Email = u.Email,
-                    Cidade = u.Cidade
                 }).ToList();
 
                 return Ok(usuarios);
@@ -100,7 +97,6 @@ namespace Learnly.Api.Controllers
                     Id = Id,
                     Nome = usuario.Nome,
                     Email = usuario.Email,
-                    Cidade = usuario.Cidade
                 };
 
                 await _usuarioAplicacao.Atualizar(usuarioDominio);

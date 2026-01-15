@@ -13,6 +13,7 @@ namespace Learnly.Repository.Interfaces
         Task AtualizarSimuladoAsync(List<SimuladoQuestao> simuladoQuestoes);
         Task ResponderSimulado(Simulado simulado);
         Task<Simulado> Obter(int simuladoId);
+        Task<List<Simulado>> Listar5(int usuarioId);
         Task<Questao> ObterQuestao(int questaoId);
         Task<Alternativa> ObterAlternativa(int questaoId);
     }

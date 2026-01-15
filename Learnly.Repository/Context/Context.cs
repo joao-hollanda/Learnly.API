@@ -2,6 +2,8 @@ using Microsoft.EntityFrameworkCore;
 using Learnly.Domain.Entities;
 using Learnly.Domain.Entities.Simulados;
 using Learnly.Repository.Config;
+using Learnly.Infra.Data.Configurations;
+using Learnly.Repository.Config.Simulados;
 
 public class LearnlyContexto : DbContext
 {
@@ -36,5 +38,7 @@ public class LearnlyContexto : DbContext
         modelBuilder.ApplyConfiguration(new SimuladoQuestaoConfig());
         modelBuilder.ApplyConfiguration(new RespostaSimuladoConfig());
         modelBuilder.ApplyConfiguration(new PlanoEstudoConfig());
+        modelBuilder.ApplyConfiguration(new MateriaConfig());
+        modelBuilder.ApplyConfiguration(new PlanoMateriaConfig());
     }
 }

@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -9,9 +10,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Learnly.Repository.Migrations
 {
     [DbContext(typeof(LearnlyContexto))]
-    partial class LearnlyContextoModelSnapshot : ModelSnapshot
+    [Migration("20260115180246_Planos")]
+    partial class Planos
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.0");
@@ -126,16 +129,14 @@ namespace Learnly.Repository.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Texto")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.HasKey("AlternativaId");
 
                     b.HasIndex("QuestaoId");
 
-                    b.ToTable("Alternativas", null, t =>
-                        {
-                            t.HasCheckConstraint("CK_Alternativa_TextoOuArquivo", "Texto IS NOT NULL OR Arquivo IS NOT NULL");
-                        });
+                    b.ToTable("Alternativas", (string)null);
                 });
 
             modelBuilder.Entity("Learnly.Domain.Entities.Simulados.RespostaSimulado", b =>

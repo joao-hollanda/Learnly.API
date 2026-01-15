@@ -1,8 +1,6 @@
 using System.Threading.Tasks;
 using Learnly.Api.Models.Usuarios.Request;
-using Learnly.Api.Models.Usuarios.Response;
 using Learnly.Application.Interfaces;
-using Learnly.Domain;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

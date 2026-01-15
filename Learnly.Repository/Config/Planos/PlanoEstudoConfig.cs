@@ -1,8 +1,8 @@
+using Learnly.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Learnly.Domain.Entities;
 
-namespace Learnly.Repository.Config
+namespace Learnly.Infra.Data.Configurations
 {
        public class PlanoEstudoConfig : IEntityTypeConfiguration<PlanoEstudo>
        {
@@ -12,22 +12,34 @@ namespace Learnly.Repository.Config
 
                      builder.HasKey(p => p.PlanoId);
 
+                     builder.Property(p => p.Titulo)
+                         .IsRequired()
+                         .HasMaxLength(150);
+
                      builder.Property(p => p.Objetivo)
-                            .IsRequired()
-                            .HasMaxLength(200);
+                         .IsRequired()
+                         .HasMaxLength(300);
 
                      builder.Property(p => p.DataInicio)
-                            .IsRequired();
+                         .IsRequired();
 
                      builder.Property(p => p.DataFim)
-                            .IsRequired();
+                         .IsRequired();
 
                      builder.Property(p => p.HorasPorSemana)
-                            .IsRequired();
+                         .IsRequired();
 
-                     builder.Property(p => p.StatusPlano)
-                            .IsRequired();
+                     builder.Property(p => p.Ativo)
+                         .IsRequired();
 
+                     builder.HasOne(p => p.Usuario)
+                         .WithMany(u => u.PlanoEstudo)
+                         .HasForeignKey(p => p.UsuarioId)
+                         .OnDelete(DeleteBehavior.Cascade);
+
+                     builder.HasMany(p => p.PlanoMaterias)
+                         .WithOne(pm => pm.Plano)
+                         .HasForeignKey(pm => pm.PlanoId);
               }
        }
 }

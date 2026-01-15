@@ -42,11 +42,11 @@ namespace Learnly.Application.Applications
         {
             var claims = new[]
             {
-            new Claim("id", id.ToString()),
-            new Claim("email", email),
-            new Claim("nome", nome),
-            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-        };
+                new Claim("id", id.ToString()),
+                new Claim("email", email),
+                new Claim("nome", nome),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+            };
 
             var privateKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["jwt:secretKey"]));
 
