@@ -105,5 +105,15 @@ namespace Learnly.Application.Applications
 
             return await _simuladoRepositorio.Listar5(id);
         }
+
+        public async Task<int> Contar (int usuarioId)
+        {
+            var usuarioDominio = await _usuarioRepositorio.Obter(usuarioId, true);
+
+            if(usuarioDominio == null)
+                throw new Exception("Usuário não encontrado!");
+            
+            return await _simuladoRepositorio.ContarTotal(usuarioId);
+        }
     }
 }

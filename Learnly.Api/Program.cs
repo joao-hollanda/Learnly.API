@@ -16,6 +16,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddScoped<ILoginAplicacao, LoginAplicacao>();
 builder.Services.AddScoped<IUsuarioAplicacao, UsuarioAplicacao>();
 builder.Services.AddScoped<ISimuladoAplicacao, SimuladoAplicacao>();
+builder.Services.AddScoped<IPlanoAplicacao, PlanoAplicacao>();
+builder.Services.AddScoped<IMateriaAplicacao, MateriaAplicacao>();
 #endregion
 
 #region Serviços
@@ -31,6 +33,9 @@ builder.Services.AddScoped<IIAService>(sp =>
 #region Repositórios
 builder.Services.AddScoped<IUsuarioRepositorio, UsuarioRepositorio>();
 builder.Services.AddScoped<ISimuladoRepositorio, SimuladoRepositorio>();
+builder.Services.AddScoped<IPlanoRepositorio, PlanoRepositorio>();
+builder.Services.AddScoped<IMateriaRepositorio, MateriaRepositorio>();
+
 #endregion
 
 #region CORS

@@ -1,0 +1,106 @@
+using Learnly.Api.Models.Planos.Request;
+using Learnly.Application.Interfaces;
+using Learnly.Domain.Entities;
+using Learnly.Domain.Entities.Planos;
+using Microsoft.AspNetCore.Mvc;
+
+namespace Learnly.API.Controllers
+{
+    [ApiController]
+    [Route("api/[controller]")]
+    public class PlanoController : ControllerBase
+    {
+        private readonly IPlanoAplicacao _planoAplicacao;
+
+        public PlanoController(IPlanoAplicacao planoAplicacao)
+        {
+            _planoAplicacao = planoAplicacao;
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Criar([FromBody] CriarPlanoDTO dto)
+        {
+            var plano = new PlanoEstudo
+            {
+                Titulo = dto.Titulo,
+                Objetivo = dto.Objetivo,
+                UsuarioId = dto.UsuarioId,
+                DataInicio = dto.DataInicio,
+                DataFim = dto.DataFim,
+                HorasPorSemana = 0,
+                Ativo = false
+            };
+
+            await _planoAplicacao.Criar(plano);
+            return Ok(plano);
+        }
+
+        [HttpGet("{planoId}")]
+        public async Task<IActionResult> Obter(int planoId)
+        {
+            var plano = await _planoAplicacao.Obter(planoId);
+            return Ok(plano);
+        }
+
+        [HttpGet("usuario/{usuarioId}")]
+        public async Task<IActionResult> Listar5(int usuarioId)
+        {
+            var planos = await _planoAplicacao.Listar5(usuarioId);
+            return Ok(planos);
+        }
+
+        [HttpGet("gerar-resumo/{usuarioId}")]
+        public async Task<ActionResult<ResumoGeralDto>> ObterResumoGeral(int usuarioId)
+        {
+            return Ok(await _planoAplicacao.GerarResumo(usuarioId));
+        }
+
+
+        [HttpPut]
+        public async Task<IActionResult> Atualizar([FromBody] PlanoEstudo plano)
+        {
+            await _planoAplicacao.Atualizar(plano);
+            return NoContent();
+        }
+
+        [HttpPut("{planoId}/ativar")]
+        public async Task<IActionResult> AtivarPlano(int planoId, [FromQuery] int usuarioId)
+        {
+            await _planoAplicacao.AtivarPlano(planoId, usuarioId);
+            return NoContent();
+        }
+
+        [HttpPost("{planoId}/materia")]
+        public async Task<IActionResult> AdicionarMateria(
+            int planoId,
+            [FromBody] AdicionarPlanoMateriaDTO dto)
+        {
+            await _planoAplicacao.AdicionarMateria(
+                planoId,
+                dto.MateriaId,
+                dto.HorasTotais
+            );
+
+            return NoContent();
+        }
+
+        [HttpPut("lancar-horas")]
+        public async Task<IActionResult> LancarHoras(
+            [FromQuery] int planoMateriaId,
+            [FromQuery] int horas
+        )
+        {
+            await _planoAplicacao.LancarHoras(planoMateriaId, horas);
+            return NoContent();
+        }
+
+        [HttpPost("{planoId}/gerar-agenda")]
+        public async Task<IActionResult> GerarAgenda(int planoId)
+        {
+            await _planoAplicacao.GerarAgendaPlano(planoId);
+            return Ok();
+        }
+
+    }
+
+}

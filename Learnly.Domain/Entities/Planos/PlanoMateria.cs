@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace Learnly.Domain.Entities.Planos
@@ -10,6 +11,7 @@ namespace Learnly.Domain.Entities.Planos
         public int PlanoMateriaId { get; set; }
 
         public int PlanoId { get; set; }
+        [JsonIgnore]
         public PlanoEstudo Plano { get; set; }
 
         public int MateriaId { get; set; }

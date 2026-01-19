@@ -8,5 +8,6 @@ namespace Learnly.Application.Interfaces
         Task<Simulado> ResponderSimulado(Simulado simulado);
         Task<Simulado> Obter(int id);
         Task<List<Simulado>> Listar5(int usuarioId);
+        Task<int> Contar(int usuarioId);
     }
 }

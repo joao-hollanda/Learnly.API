@@ -111,5 +111,10 @@ namespace Learnly.Repository.Repositories
             _context.SimuladoQuestoes.AddRange(simuladoQuestoes);
             await _context.SaveChangesAsync();
         }
+
+        public async Task<int> ContarTotal(int usuarioId)
+        {
+            return await _context.Simulados.Where(p => p.UsuarioId == usuarioId).CountAsync();
+        }
     }
 }

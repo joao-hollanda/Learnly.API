@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Learnly.Api.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("api/[controller]")]
     public class SimuladoController : ControllerBase
     {
         private readonly ISimuladoAplicacao _simuladoAplicacao;
@@ -179,6 +179,20 @@ namespace Learnly.Api.Controllers
 
                 return Ok(simuladosListados);
 
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpGet]
+        [Route("Contar/{usuarioId}")]
+        public async Task<IActionResult> ContarTotal(int usuarioId)
+        {
+            try
+            {
+                return Ok(await _simuladoAplicacao.Contar(usuarioId));
             }
             catch (Exception ex)
             {

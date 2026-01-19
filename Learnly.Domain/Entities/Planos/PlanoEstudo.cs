@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using Learnly.Domain.Entities.Planos;
 
 namespace Learnly.Domain.Entities
@@ -16,8 +17,9 @@ namespace Learnly.Domain.Entities
         public bool Ativo { get; set; }
 
         public int UsuarioId { get; set; }
+        [JsonIgnore]
         public Usuario Usuario { get; set; }
-
         public ICollection<PlanoMateria> PlanoMaterias { get; set; }
+        public List<EventoEstudo> Agenda { get; set; }
     }
 }

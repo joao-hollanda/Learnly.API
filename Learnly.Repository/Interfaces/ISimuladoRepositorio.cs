@@ -16,5 +16,6 @@ namespace Learnly.Repository.Interfaces
         Task<List<Simulado>> Listar5(int usuarioId);
         Task<Questao> ObterQuestao(int questaoId);
         Task<Alternativa> ObterAlternativa(int questaoId);
+        Task<int> ContarTotal(int usuarioId);
     }
 }

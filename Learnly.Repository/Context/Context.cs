@@ -4,11 +4,15 @@ using Learnly.Domain.Entities.Simulados;
 using Learnly.Repository.Config;
 using Learnly.Infra.Data.Configurations;
 using Learnly.Repository.Config.Simulados;
+using Learnly.Domain.Entities.Planos;
 
 public class LearnlyContexto : DbContext
 {
     private readonly DbContextOptions _options;
     public DbSet<PlanoEstudo> PlanosEstudo { get; set; }
+    public DbSet<Materia> Materias { get; set; }
+    public DbSet<PlanoMateria> PlanoMateria { get; set; }
+    public DbSet<EventoEstudo> Eventos { get; set;}
     public DbSet<Usuario> Usuarios { get; set; }
     public DbSet<Simulado> Simulados { get; set; }
     public DbSet<Questao> Questoes { get; set; }
@@ -40,5 +44,6 @@ public class LearnlyContexto : DbContext
         modelBuilder.ApplyConfiguration(new PlanoEstudoConfig());
         modelBuilder.ApplyConfiguration(new MateriaConfig());
         modelBuilder.ApplyConfiguration(new PlanoMateriaConfig());
+        modelBuilder.ApplyConfiguration(new EventoEstudoConfig());
     }
 }
