@@ -372,7 +372,7 @@ BEGIN
         ISNULL(SUM(pm.HorasTotais), 0)     AS HorasTotais,
         ISNULL(SUM(pm.HorasConcluidas), 0) AS HorasConcluidas
     FROM PlanosEstudo p
-    INNER JOIN PlanoMateria pm ON pm.PlanoId = p.PlanoId
+    INNER JOIN PlanoMaterias pm ON pm.PlanoId = p.PlanoId
     WHERE p.UsuarioId = @UsuarioId;
 END;
 ");

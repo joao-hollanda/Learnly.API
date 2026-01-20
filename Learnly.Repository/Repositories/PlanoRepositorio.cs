@@ -50,36 +50,24 @@ namespace Learnly.Repository
         public async Task<PlanoMateria?> ObterPlanoMateriaPorId(int planoMateriaId)
         {
             return await _contexto.PlanoMateria
+                .Include(pm => pm.Plano)
                 .FirstOrDefaultAsync(pm => pm.PlanoMateriaId == planoMateriaId);
         }
+
 
         public async Task Salvar()
         {
             await _contexto.SaveChangesAsync();
         }
 
-        public async Task<ResumoGeralUsuarioDto> GerarResumoGeral(int usuarioId)
+        public async Task<ResumoGeralUsuarioDto?> GerarResumoGeral(int usuarioId)
         {
-            return await _contexto.ResumoGeral
-                .FromSqlRaw(
-                    "EXEC sp_GerarResumoGeralUsuario @UsuarioId = @usuarioId",
-                    new SqlParameter("@usuarioId", usuarioId)
-                )
-                .AsNoTracking()
-                .FirstAsync();
+            return _contexto.ResumoGeral
+                .FromSqlRaw("EXEC dbo.sp_GerarResumoGeralUsuario @UsuarioId",
+                    new SqlParameter("@UsuarioId", usuarioId))
+                .AsEnumerable()
+                .SingleOrDefault();
         }
-
-
-
-        private static int CalcularSemanas(DateTime inicio, DateTime fim)
-        {
-            if (fim.Date < inicio.Date)
-                throw new ArgumentException("Data final não pode ser menor que a inicial");
-
-            var dias = (fim.Date - inicio.Date).TotalDays;
-            return Math.Max(1, (int)Math.Ceiling(dias / 7));
-        }
-
 
     }
 }

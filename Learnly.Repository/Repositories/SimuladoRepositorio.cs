@@ -121,15 +121,17 @@ namespace Learnly.Repository.Repositories
 
         public async Task<int> ContarTotal(int usuarioId)
         {
-            var result = await _context.TotalSimulados
+            var result = _context.TotalSimulados
                 .FromSqlRaw(
                     "EXEC sp_ContarSimuladosUsuario @UsuarioId = @usuarioId",
                     new SqlParameter("@usuarioId", usuarioId)
                 )
                 .AsNoTracking()
-                .FirstAsync();
+                .AsEnumerable()
+                .FirstOrDefault();
 
-            return result.Total;
+            return result?.Total ?? 0;
         }
+
     }
 }

@@ -25,6 +25,7 @@ public class LearnlyContexto : DbContext
     public DbSet<ResumoGeralUsuarioDto> ResumoGeral { get; set; }
 
 
+
     public LearnlyContexto()
     { }
 
@@ -52,9 +53,24 @@ public class LearnlyContexto : DbContext
         modelBuilder.ApplyConfiguration(new EventoEstudoConfig());
         modelBuilder.ApplyConfiguration(new HoraLancadaConfig());
 
-        modelBuilder.Entity<TotalSimuladosDto>().HasNoKey();
-        modelBuilder.Entity<PlanoDashboardDto>().HasNoKey();
-        modelBuilder.Entity<ResumoGeralDto>().HasNoKey();
+        modelBuilder.Entity<TotalSimuladosDto>(entity =>
+        {
+            entity.HasNoKey();
+            entity.ToView(null);
+        });
+
+        modelBuilder.Entity<PlanoDashboardDto>(entity =>
+        {
+            entity.HasNoKey();
+            entity.ToView(null);
+        });
+
+        modelBuilder.Entity<ResumoGeralUsuarioDto>(entity =>
+        {
+            entity.HasNoKey();
+            entity.ToView(null);
+        });
+
 
     }
 }
