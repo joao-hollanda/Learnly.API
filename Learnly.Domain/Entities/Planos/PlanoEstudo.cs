@@ -21,5 +21,15 @@ namespace Learnly.Domain.Entities
         public Usuario Usuario { get; set; }
         public ICollection<PlanoMateria> PlanoMaterias { get; set; }
         public List<EventoEstudo> Agenda { get; set; }
+
+        public void Desativar()
+        {
+            Ativo = false;
+        }
+
+        public void Reativar()
+        {
+            Ativo = true;
+        }
     }
 }

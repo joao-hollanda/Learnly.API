@@ -20,9 +20,6 @@ namespace Learnly.Infra.Data.Configurations
             builder.Property(m => m.Cor)
                 .HasMaxLength(30);
 
-            builder.HasIndex(m => m.Nome)
-                .IsUnique();
-
             builder.HasMany(m => m.PlanoMaterias)
                 .WithOne(pm => pm.Materia)
                 .HasForeignKey(pm => pm.MateriaId);

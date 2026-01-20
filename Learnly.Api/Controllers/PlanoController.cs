@@ -94,11 +94,25 @@ namespace Learnly.API.Controllers
             return NoContent();
         }
 
-        [HttpPost("{planoId}/gerar-agenda")]
-        public async Task<IActionResult> GerarAgenda(int planoId)
+        [HttpPut("{planoId}/desativar")]
+        public async Task<IActionResult> DesativarPlano(int planoId)
         {
-            await _planoAplicacao.GerarAgendaPlano(planoId);
-            return Ok();
+            var plano = await _planoAplicacao.Obter(planoId);
+
+            if (plano == null)
+                return NotFound("Plano não encontrado!");
+
+            await _planoAplicacao.DesativarPlano(plano);
+
+            return NoContent();
+        }
+
+
+        [HttpGet("horas/comparacao/{usuarioId}")]
+        public async Task<IActionResult> CompararHorasHojeOntem(int usuarioId)
+        {
+            var comparacao = await _planoAplicacao.CompararHorasHojeOntem(usuarioId);
+            return Ok(comparacao);
         }
 
     }

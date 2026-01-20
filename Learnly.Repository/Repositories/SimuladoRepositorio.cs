@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Learnly.Domain.Entities.Simulados;
 using Learnly.Repository.Interfaces;
 using Microsoft.VisualBasic;
+using Microsoft.Data.SqlClient;
 
 namespace Learnly.Repository.Repositories
 {
@@ -54,16 +55,22 @@ namespace Learnly.Repository.Repositories
                 if (restante > 0) restante--;
 
                 var questoes = await _context.Questoes
-                                             .FromSqlRaw(
-                                                 "SELECT * FROM Questoes WHERE Disciplina = {0} ORDER BY RANDOM() LIMIT {1}",
-                                                 disciplina, limite)
-                                             .Include(q => q.Alternativas)
-                                             .ToListAsync();
+                    .FromSqlRaw(
+                        @"SELECT TOP (@limite) *
+              FROM Questoes
+              WHERE Disciplina = @disciplina
+              ORDER BY NEWID()",
+                        new SqlParameter("@limite", limite),
+                        new SqlParameter("@disciplina", disciplina)
+                    )
+                    .Include(q => q.Alternativas)
+                    .ToListAsync();
 
                 resultado.AddRange(questoes);
             }
 
             return resultado;
+
         }
 
         public async Task<Simulado> Obter(int simuladoId)
@@ -80,8 +87,8 @@ namespace Learnly.Repository.Repositories
         {
             return await _context.Simulados
                 .Include(s => s.Questoes)
-                .ThenInclude(sq => sq.Questao)
-                .ThenInclude(q => q.Alternativas)
+                    .ThenInclude(sq => sq.Questao)
+                        .ThenInclude(q => q.Alternativas)
                 .Include(s => s.Respostas)
                 .Where(s => s.UsuarioId == usuarioId)
                 .OrderByDescending(s => s.Data)
@@ -114,7 +121,15 @@ namespace Learnly.Repository.Repositories
 
         public async Task<int> ContarTotal(int usuarioId)
         {
-            return await _context.Simulados.Where(p => p.UsuarioId == usuarioId).CountAsync();
+            var result = await _context.TotalSimulados
+                .FromSqlRaw(
+                    "EXEC sp_ContarSimuladosUsuario @UsuarioId = @usuarioId",
+                    new SqlParameter("@usuarioId", usuarioId)
+                )
+                .AsNoTracking()
+                .FirstAsync();
+
+            return result.Total;
         }
     }
 }

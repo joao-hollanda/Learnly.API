@@ -35,6 +35,7 @@ builder.Services.AddScoped<IUsuarioRepositorio, UsuarioRepositorio>();
 builder.Services.AddScoped<ISimuladoRepositorio, SimuladoRepositorio>();
 builder.Services.AddScoped<IPlanoRepositorio, PlanoRepositorio>();
 builder.Services.AddScoped<IMateriaRepositorio, MateriaRepositorio>();
+builder.Services.AddScoped<IHoraLancadaRepositorio, HoraLancadaRepositorio>();
 
 #endregion
 
@@ -123,7 +124,7 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.AddControllers();
 
 builder.Services.AddDbContext<LearnlyContexto>(options =>
-    options.UseSqlite(
+    options.UseSqlServer(
         builder.Configuration.GetConnectionString("DefaultConnection")
     )
 );

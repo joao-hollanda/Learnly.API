@@ -10,15 +10,18 @@ namespace Learnly.Application.Applications
         readonly IPlanoRepositorio _planoRepositorio;
         readonly IUsuarioRepositorio _usuarioRepositorio;
         readonly IMateriaRepositorio _materiaRepositorio;
+        readonly IHoraLancadaRepositorio _horaLancadaRepositorio;
 
         public PlanoAplicacao(
             IPlanoRepositorio planoRepositorio,
             IUsuarioRepositorio usuarioRepositorio,
-            IMateriaRepositorio materiaRepositorio)
+            IMateriaRepositorio materiaRepositorio,
+            IHoraLancadaRepositorio horaLancadaRepositorio)
         {
             _planoRepositorio = planoRepositorio;
             _usuarioRepositorio = usuarioRepositorio;
             _materiaRepositorio = materiaRepositorio;
+            _horaLancadaRepositorio = horaLancadaRepositorio;
         }
 
         public async Task Criar(PlanoEstudo plano)
@@ -122,10 +125,19 @@ namespace Learnly.Application.Applications
 
             planoMateria.HorasConcluidas += horas;
 
+            var lancamento = new HoraLancada
+            {
+                UsuarioId = planoMateria.Plano.UsuarioId,
+                QuantdadeHoras = horas,
+                Data = DateTime.UtcNow.Date
+            };
+
+            await _horaLancadaRepositorio.LancarHorasAsync(lancamento);
+
             await _planoRepositorio.Salvar();
         }
 
-        public async Task<ResumoGeralDto> GerarResumo(int usuarioId)
+        public async Task<ResumoGeralUsuarioDto> GerarResumo(int usuarioId)
         {
             var usuarioDominio = await _usuarioRepositorio.Obter(usuarioId, true);
 
@@ -134,26 +146,37 @@ namespace Learnly.Application.Applications
 
             return await _planoRepositorio.GerarResumoGeral(usuarioId);
         }
-        public async Task GerarAgendaPlano(int planoId)
+
+        public async Task DesativarPlano(PlanoEstudo plano)
         {
-            var plano = await _planoRepositorio.ObterPlanoPorId(planoId);
-
-            if (plano == null)
-                throw new Exception("Plano não encontrado");
-
-            var materias = plano.PlanoMaterias.ToList();
-
-            if (!materias.Any())
-                throw new Exception("Plano sem matérias");
-
-            var gerador = new GeradorAgendaService();
-            var eventos = gerador.GerarAgenda(plano, materias);
-
-            plano.Agenda.Clear();
-            plano.Agenda.AddRange(eventos);
-
-            await _planoRepositorio.Atualizar(new List<PlanoEstudo> {plano});
+            plano.Desativar();
+            await _planoRepositorio.Atualizar(new List<PlanoEstudo> { plano });
         }
+
+        public async Task<ComparacaoHorasDto> CompararHorasHojeOntem(int usuarioId)
+        {
+            var usuario = await _usuarioRepositorio.Obter(usuarioId, true);
+
+            if (usuario == null)
+                throw new Exception("Usuário não encontrado");
+
+            var hoje = DateTime.UtcNow.Date;
+            var ontem = hoje.AddDays(-1);
+
+            var horasHoje = await _horaLancadaRepositorio
+                .SomarHorasPeriodoAsync(usuarioId, hoje, hoje);
+
+            var horasOntem = await _horaLancadaRepositorio
+                .SomarHorasPeriodoAsync(usuarioId, ontem, ontem);
+
+            return new ComparacaoHorasDto
+            {
+                HorasHoje = horasHoje,
+                HorasOntem = horasOntem,
+                Diferenca = horasHoje - horasOntem
+            };
+        }
+
 
     }
 }

@@ -11,7 +11,7 @@ namespace Learnly.Repository.Interfaces
         Task Atualizar(List<PlanoEstudo> planos);
         Task<PlanoMateria?> ObterPlanoMateriaPorId(int planoMateriaId);
         Task Salvar();
-        Task<ResumoGeralDto> GerarResumoGeral(int usuarioId);
+        Task<ResumoGeralUsuarioDto> GerarResumoGeral(int usuarioId);
         Task<PlanoEstudo> ObterPlanoPorId(int planoId);
     }
 }

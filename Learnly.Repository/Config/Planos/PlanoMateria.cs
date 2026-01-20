@@ -28,9 +28,6 @@ namespace Learnly.Infra.Data.Configurations
                 .WithMany(m => m.PlanoMaterias)
                 .HasForeignKey(pm => pm.MateriaId)
                 .OnDelete(DeleteBehavior.Restrict);
-
-            builder.HasIndex(pm => new { pm.PlanoId, pm.MateriaId })
-                .IsUnique();
         }
     }
 }

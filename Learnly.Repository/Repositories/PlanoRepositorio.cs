@@ -1,6 +1,7 @@
 using Learnly.Domain.Entities;
 using Learnly.Domain.Entities.Planos;
 using Learnly.Repository.Interfaces;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 
 namespace Learnly.Repository
@@ -20,11 +21,10 @@ namespace Learnly.Repository
         public async Task<List<PlanoEstudo>> Listar5(int usuarioId)
         {
             return await _contexto.PlanosEstudo
-                .Where(p => p.UsuarioId == usuarioId)
+                .Where(p => p.UsuarioId == usuarioId && p.Ativo == true)
                 .Include(p => p.PlanoMaterias)
                     .ThenInclude(pm => pm.Materia)
-                .OrderByDescending(p => p.Ativo)
-                .ThenByDescending(p => p.PlanoId)
+                .OrderByDescending(p => p.PlanoId)
                 .Take(5)
                 .ToListAsync();
         }
@@ -58,28 +58,15 @@ namespace Learnly.Repository
             await _contexto.SaveChangesAsync();
         }
 
-        public async Task<ResumoGeralDto> GerarResumoGeral(int usuarioId)
+        public async Task<ResumoGeralUsuarioDto> GerarResumoGeral(int usuarioId)
         {
-            var planos = await _contexto.PlanosEstudo
-                .Where(p => p.UsuarioId == usuarioId)
-                .Include(p => p.PlanoMaterias)
-                .OrderByDescending(p => p.PlanoId)
-                .Take(5)
-                .ToListAsync();
-
-            int horasTotais = planos
-                .SelectMany(p => p.PlanoMaterias)
-                .Sum(m => m.HorasTotais);
-
-            int horasConcluidas = planos
-                .SelectMany(p => p.PlanoMaterias)
-                .Sum(m => m.HorasConcluidas);
-
-            return new ResumoGeralDto
-            {
-                HorasTotais = horasTotais,
-                HorasConcluidas = horasConcluidas
-            };
+            return await _contexto.ResumoGeral
+                .FromSqlRaw(
+                    "EXEC sp_GerarResumoGeralUsuario @UsuarioId = @usuarioId",
+                    new SqlParameter("@usuarioId", usuarioId)
+                )
+                .AsNoTracking()
+                .FirstAsync();
         }
 
 

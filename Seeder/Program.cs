@@ -6,10 +6,8 @@ class Program
 {
     static async Task Main(string[] args)
     {
-        var dbPath = "Learnly.db";
-
         var options = new DbContextOptionsBuilder<LearnlyContexto>()
-            .UseSqlite($"Data Source={dbPath}")
+            .UseSqlServer("Server=DESKTOP-NFU330V\\SQLEXPRESS;Database=LearnlyDatabase;Trusted_Connection=True;TrustServerCertificate=True;")
             .EnableSensitiveDataLogging() // ajuda no debug
             .Options;
 
