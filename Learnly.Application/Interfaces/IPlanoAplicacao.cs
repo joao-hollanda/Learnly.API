@@ -14,5 +14,6 @@ namespace Learnly.Application.Interfaces
         Task<ResumoGeralUsuarioDto> GerarResumo(int usuarioId);
         Task DesativarPlano(PlanoEstudo plano);
         Task<ComparacaoHorasDto> CompararHorasHojeOntem(int usuarioId);
+        Task Excluir (PlanoEstudo plano);
     }
 }

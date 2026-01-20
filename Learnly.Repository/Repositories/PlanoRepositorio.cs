@@ -18,17 +18,6 @@ namespace Learnly.Repository
             await _contexto.SaveChangesAsync();
         }
 
-        public async Task<List<PlanoEstudo>> Listar5(int usuarioId)
-        {
-            return await _contexto.PlanosEstudo
-                .Where(p => p.UsuarioId == usuarioId && p.Ativo == true)
-                .Include(p => p.PlanoMaterias)
-                    .ThenInclude(pm => pm.Materia)
-                .OrderByDescending(p => p.PlanoId)
-                .Take(5)
-                .ToListAsync();
-        }
-
         public async Task<PlanoEstudo?> Obter(int planoId)
         {
             return await _contexto.PlanosEstudo
@@ -67,6 +56,29 @@ namespace Learnly.Repository
                     new SqlParameter("@UsuarioId", usuarioId))
                 .AsEnumerable()
                 .SingleOrDefault();
+        }
+
+        public async Task<List<PlanoEstudo>> ListarPorUsuario(int usuarioId)
+        {
+            return await _contexto.PlanosEstudo
+                .Where(p => p.UsuarioId == usuarioId)
+                .Include(p => p.PlanoMaterias)
+                    .ThenInclude(pm => pm.Materia)
+                .OrderByDescending(p => p.PlanoId)
+                .Take(5)
+                .ToListAsync();
+        }
+
+        public async Task Excluir(PlanoEstudo plano)
+        {
+            _contexto.Remove(plano);
+            await _contexto.SaveChangesAsync();
+        }
+
+        public async Task<int> ContarPorUsuario(int usuarioId)
+        {
+            return await _contexto.PlanosEstudo
+                .CountAsync(p => p.UsuarioId == usuarioId);
         }
 
     }

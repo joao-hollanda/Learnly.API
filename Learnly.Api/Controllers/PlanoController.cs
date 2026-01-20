@@ -115,6 +115,25 @@ namespace Learnly.API.Controllers
             return Ok(comparacao);
         }
 
+        [HttpDelete("{planoId}")]
+        public async Task<IActionResult> Excluir(int planoId)
+        {
+            try
+            {
+                var plano = await _planoAplicacao.Obter(planoId);
+
+                await _planoAplicacao.Excluir(plano);
+
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+
+
     }
 
 }

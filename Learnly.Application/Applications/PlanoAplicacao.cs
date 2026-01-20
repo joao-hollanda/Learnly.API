@@ -33,12 +33,19 @@ namespace Learnly.Application.Applications
                 string.IsNullOrWhiteSpace(plano.Objetivo))
                 throw new InvalidOperationException("É necessário ter um título e um objetivo!");
 
+
+            var totalPlanosUsuario =
+                await _planoRepositorio.ContarPorUsuario(plano.UsuarioId);
+
+            if (totalPlanosUsuario >= 5)
+                throw new InvalidOperationException("Limite máximo de 5 planos atingido.");
+
             await _planoRepositorio.Criar(plano);
         }
 
         public async Task<PlanoEstudo> Obter(int planoId)
         {
-            var plano = await _planoRepositorio.Obter(planoId);
+            var plano = await _planoRepositorio.ObterPlanoPorId(planoId);
 
             if (plano == null)
                 throw new Exception("Plano não encontrado");
@@ -48,13 +55,9 @@ namespace Learnly.Application.Applications
 
         public async Task<List<PlanoEstudo>> Listar5(int usuarioId)
         {
-            var usuario = await _usuarioRepositorio.Obter(usuarioId, true);
-
-            if (usuario == null)
-                throw new Exception("Usuário não encontrado");
-
-            return await _planoRepositorio.Listar5(usuarioId);
+            return await _planoRepositorio.ListarPorUsuario(usuarioId);
         }
+
 
         public async Task Atualizar(PlanoEstudo planoEstudo)
         {
@@ -66,7 +69,7 @@ namespace Learnly.Application.Applications
 
         public async Task AtivarPlano(int planoId, int usuarioId)
         {
-            var planos = await _planoRepositorio.Listar5(usuarioId);
+            var planos = await _planoRepositorio.ListarPorUsuario(usuarioId);
 
             if (!planos.Any())
                 throw new Exception("Usuário não possui planos");
@@ -83,6 +86,7 @@ namespace Learnly.Application.Applications
 
             await _planoRepositorio.Atualizar(planos);
         }
+
 
         public async Task AdicionarMateria(int planoId, int materiaId, int horasTotais)
         {
@@ -177,6 +181,10 @@ namespace Learnly.Application.Applications
             };
         }
 
+        public async Task Excluir(PlanoEstudo plano)
+        {
+            await _planoRepositorio.Excluir(plano);
+        }
 
     }
 }
