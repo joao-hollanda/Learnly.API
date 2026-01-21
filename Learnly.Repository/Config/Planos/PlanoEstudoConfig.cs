@@ -40,11 +40,6 @@ namespace Learnly.Infra.Data.Configurations
             builder.HasMany(p => p.PlanoMaterias)
                 .WithOne(pm => pm.Plano)
                 .HasForeignKey(pm => pm.PlanoId);
-
-            builder.HasMany(p => p.Agenda)
-                .WithOne(e => e.Plano)
-                .HasForeignKey(e => e.PlanoId)
-                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

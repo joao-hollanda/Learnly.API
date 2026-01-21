@@ -185,6 +185,11 @@ namespace Learnly.Application.Applications
         {
             await _planoRepositorio.Excluir(plano);
         }
+        public async Task<PlanoEstudo> ObterPlanoAtivo(int usuarioId)
+        {
+            return await _planoRepositorio.ObterPlanoAtivo(usuarioId);
+        }
 
     }
+
 }

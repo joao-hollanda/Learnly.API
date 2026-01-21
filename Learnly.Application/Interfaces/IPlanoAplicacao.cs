@@ -15,5 +15,6 @@ namespace Learnly.Application.Interfaces
         Task DesativarPlano(PlanoEstudo plano);
         Task<ComparacaoHorasDto> CompararHorasHojeOntem(int usuarioId);
         Task Excluir (PlanoEstudo plano);
+        Task<PlanoEstudo> ObterPlanoAtivo (int usuarioId);
     }
 }

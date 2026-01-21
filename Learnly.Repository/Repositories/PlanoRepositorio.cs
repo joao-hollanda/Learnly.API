@@ -81,5 +81,15 @@ namespace Learnly.Repository
                 .CountAsync(p => p.UsuarioId == usuarioId);
         }
 
+        public async Task<PlanoEstudo?> ObterPlanoAtivo(int usuarioId)
+        {
+            return await _contexto.PlanosEstudo
+                .AsNoTracking()
+                .FirstOrDefaultAsync(p =>
+                    p.UsuarioId == usuarioId &&
+                    p.Ativo
+                );
+        }
+
     }
 }

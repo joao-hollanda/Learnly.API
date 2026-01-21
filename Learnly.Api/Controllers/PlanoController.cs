@@ -132,6 +132,12 @@ namespace Learnly.API.Controllers
             }
         }
 
+        [HttpGet("plano-ativo/{usuarioId}")]
+        public async Task<IActionResult> ObterPlanoAtivo(int usuarioId)
+        {
+            var plano = await _planoAplicacao.ObterPlanoAtivo(usuarioId);
+            return Ok(plano);
+        }
 
 
     }

@@ -20,7 +20,6 @@ namespace Learnly.Domain.Entities
         [JsonIgnore]
         public Usuario Usuario { get; set; }
         public ICollection<PlanoMateria> PlanoMaterias { get; set; }
-        public List<EventoEstudo> Agenda { get; set; }
 
         public PlanoEstudo()
         {

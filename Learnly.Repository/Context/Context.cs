@@ -13,7 +13,7 @@ public class LearnlyContexto : DbContext
     public DbSet<Materia> Materias { get; set; }
     public DbSet<PlanoMateria> PlanoMateria { get; set; }
     public DbSet<HoraLancada> HorasLancadas { get; set; }
-    public DbSet<EventoEstudo> Eventos { get; set; }
+    public DbSet<EventoEstudo> EventosEstudo { get; set; }
     public DbSet<Usuario> Usuarios { get; set; }
     public DbSet<Simulado> Simulados { get; set; }
     public DbSet<Questao> Questoes { get; set; }

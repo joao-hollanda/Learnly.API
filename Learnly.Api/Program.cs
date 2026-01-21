@@ -1,6 +1,9 @@
 using System.Text;
 using Learnly.Application.Applications;
 using Learnly.Application.Interfaces;
+using Learnly.Application.Services;
+using Learnly.Domain.Interfaces.Repositories;
+using Learnly.Infra.Data.Repositories;
 using Learnly.Repository;
 using Learnly.Repository.Interfaces;
 using Learnly.Repository.Repositories;
@@ -18,6 +21,8 @@ builder.Services.AddScoped<IUsuarioAplicacao, UsuarioAplicacao>();
 builder.Services.AddScoped<ISimuladoAplicacao, SimuladoAplicacao>();
 builder.Services.AddScoped<IPlanoAplicacao, PlanoAplicacao>();
 builder.Services.AddScoped<IMateriaAplicacao, MateriaAplicacao>();
+builder.Services.AddScoped<IEventoEstudoAplicacao, EventoEstudoAplicacao>();
+
 #endregion
 
 #region Serviços
@@ -36,6 +41,7 @@ builder.Services.AddScoped<ISimuladoRepositorio, SimuladoRepositorio>();
 builder.Services.AddScoped<IPlanoRepositorio, PlanoRepositorio>();
 builder.Services.AddScoped<IMateriaRepositorio, MateriaRepositorio>();
 builder.Services.AddScoped<IHoraLancadaRepositorio, HoraLancadaRepositorio>();
+builder.Services.AddScoped<IEventoEstudoRepositorio, EventoEstudoRepositorio>();
 
 #endregion
 
