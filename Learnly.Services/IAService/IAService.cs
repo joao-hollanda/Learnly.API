@@ -26,22 +26,29 @@ namespace Learnly.Services.IAService
                     new Message
                     {
                         role = "system",
-                        content = "Você é um tutor do ENEM que gera feedbacks curtos, claros e objetivos."
+                        content = @"Você é um Mentor de Performance para o ENEM. 
+                        Seu estilo de escrita é direto, técnico e encorajador. 
+                        Em vez de listas simples, você cria conexões entre o erro do aluno e o que ele precisa fazer para subir de nível."
                     },
                     new Message
                     {
                         role = "user",
                         content = $@"
-                Dados do simulado:
-                {jsonResumo}
+                        Dados do simulado:
+                        {jsonResumo}
 
-                Gere um feedback em no máximo:
-                - 1 parágrafo de panorama geral
-                - 3 bullets de padrões de erro
-                - 3 bullets de recomendações de estudo
+                        Gere um feedback estruturado da seguinte forma (sem usar bullets):
 
-                Importante: Formate a mensagem para que a leitura seja fluida e rápida
-                "
+                        1. **Análise de Proficiência (Onde você está)**: 
+                        Um parágrafo curto analisando a coerência do desempenho. Foque se o aluno está perdendo pontos em conteúdos base (TRI) ou se o problema é fôlego de prova.
+
+                        2. **Gargalos Identificados (O que te trava)**: 
+                        Um texto fluido que conecte os erros a um padrão. Exemplo: 'Notei que o tempo gasto em questões de Exatas está prejudicando seu desempenho em Linguagens, indicando uma necessidade de priorização.'
+
+                        3. **Roteiro de Evolução (O próximo passo)**: 
+                        Uma instrução clara e prática do que ele deve estudar amanhã e como deve mudar a estratégia de resolução na próxima prova.
+
+                        Use negrito para termos técnicos e métricas importantes. Evite listas, prefira um texto que pareça uma conversa de mentoria rápida, evitando extender muito (Opte por 3-4 linhas por tópico)."
                     }
                 };
 
@@ -138,6 +145,37 @@ namespace Learnly.Services.IAService
             if (texto.Contains("gramática") || texto.Contains("sintaxe")) return "gramática";
 
             return "geral";
+        }
+
+        public async Task<string> Chatbot(List<Message> mensagens)
+        {
+            try
+            {
+                var request = new ChatRequest
+                {
+                    messages = mensagens,
+                    model = "llama-3.3-70b-versatile",
+                    temperature = 0.3,
+                };
+
+
+                var json = JsonConvert.SerializeObject(request);
+                var corpo = new StringContent(json, Encoding.UTF8, "application/json");
+
+                HttpResponseMessage response = await _httpClient.PostAsync("https://api.groq.com/openai/v1/chat/completions", corpo);
+
+                if (!response.IsSuccessStatusCode) return "Houve um erro ao fazer a requisição, tente novamente mais tarde";
+
+                var respostaJson = await response.Content.ReadAsStringAsync();
+                var resposta = JsonConvert.DeserializeObject<ChatResponse>(respostaJson);
+
+                return resposta.choices[0].message.content;
+
+            }
+            catch (Exception ex)
+            {
+                return ex.Message;
+            }
         }
     }
 }
