@@ -132,6 +132,7 @@ builder.Services.AddControllers();
 builder.Services.AddDbContext<LearnlyContexto>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))
 );
+
 #endregion
 
 var app = builder.Build();
