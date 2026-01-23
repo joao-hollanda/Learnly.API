@@ -5,6 +5,7 @@ using Learnly.Repository.Config;
 using Learnly.Infra.Data.Configurations;
 using Learnly.Repository.Config.Simulados;
 using Learnly.Domain.Entities.Planos;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 public class LearnlyContexto : DbContext
 {
@@ -39,5 +40,21 @@ public class LearnlyContexto : DbContext
         modelBuilder.ApplyConfiguration(new PlanoMateriaConfig());
         modelBuilder.ApplyConfiguration(new EventoEstudoConfig());
         modelBuilder.ApplyConfiguration(new HoraLancadaConfig());
+
+        foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+        {
+            foreach (var property in entityType.GetProperties())
+            {
+                if (property.ClrType == typeof(DateTime))
+                {
+                    property.SetValueConverter(
+                        new ValueConverter<DateTime, DateTime>(
+                            v => v.ToUniversalTime(),
+                            v => DateTime.SpecifyKind(v, DateTimeKind.Utc)
+                        )
+                    );
+                }
+            }
+        }
     }
 }

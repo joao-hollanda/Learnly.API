@@ -27,7 +27,7 @@ namespace Learnly.Api.Controllers
                 var simuladoDominio = new Simulado
                 {
                     UsuarioId = usuarioId,
-                    Data = DateTime.Now
+                    Data = DateTime.UtcNow
                 };
 
                 var simuladoId = await _simuladoAplicacao.GerarSimulado(simuladoDominio, dto.Disciplinas, dto.QuantidadeQuestoes);

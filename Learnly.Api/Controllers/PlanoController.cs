@@ -18,6 +18,7 @@ namespace Learnly.API.Controllers
         }
 
         [HttpPost]
+        [HttpPost]
         public async Task<IActionResult> Criar([FromBody] CriarPlanoDTO dto)
         {
             var plano = new PlanoEstudo
@@ -25,8 +26,10 @@ namespace Learnly.API.Controllers
                 Titulo = dto.Titulo,
                 Objetivo = dto.Objetivo,
                 UsuarioId = dto.UsuarioId,
-                DataInicio = dto.DataInicio,
-                DataFim = dto.DataFim,
+
+                DataInicio = DateTime.SpecifyKind(dto.DataInicio, DateTimeKind.Utc),
+                DataFim = DateTime.SpecifyKind(dto.DataFim, DateTimeKind.Utc),
+
                 HorasPorSemana = 0,
                 Ativo = false
             };
@@ -34,6 +37,7 @@ namespace Learnly.API.Controllers
             await _planoAplicacao.Criar(plano);
             return Ok(plano);
         }
+
 
         [HttpGet("{planoId}")]
         public async Task<IActionResult> Obter(int planoId)
