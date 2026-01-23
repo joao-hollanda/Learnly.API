@@ -49,7 +49,6 @@ namespace Learnly.Repository
             await _contexto.SaveChangesAsync();
         }
 
-        // 🔹 SUBSTITUI A PROCEDURE sp_GerarResumoGeralUsuario
         public async Task<ResumoGeralDto?> GerarResumoGeral(int usuarioId)
         {
             var resumo = await _contexto.PlanosEstudo
