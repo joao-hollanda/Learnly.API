@@ -5,12 +5,14 @@ WORKDIR /app
 # Copia tudo
 COPY . .
 
-# Restaura e publica a API
+# Restaura dependências
 RUN dotnet restore
-RUN dotnet publish Learnly.API/Learnly.Api.csproj -c Release -o out
+
+# Publica a API (CAMINHO CERTO)
+RUN dotnet publish Learnly.Api/Learnly.Api.csproj -c Release -o out
 
 # Etapa 2 - runtime
-FROM mcr.microsoft.com/dotnet/aspnet:8.0
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 WORKDIR /app
 
 COPY --from=build /app/out .
