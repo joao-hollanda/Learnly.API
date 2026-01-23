@@ -1,22 +1,28 @@
-﻿
-using Learnly.Repository.Seed;
+﻿using Learnly.Repository.Seed;
 using Microsoft.EntityFrameworkCore;
 
 class Program
 {
     static async Task Main(string[] args)
     {
+        var connectionString =
+            "Host=dpg-d5ppnan5c7fs73bthqr0-a.virginia-postgres.render.com;" +
+            "Port=5432;" +
+            "Database=learnly_db;" +
+            "Username=learnly_db_user;" +
+            "Password=rZ77YlBq2j6UE4CRoAr6CP5ezF0BX6Bo;" +
+            "SSL Mode=Require;" +
+            "Trust Server Certificate=true";
+
         var options = new DbContextOptionsBuilder<LearnlyContexto>()
-            .UseSqlServer("Server=DESKTOP-NFU330V\\SQLEXPRESS;Database=LearnlyDatabase;Trusted_Connection=True;TrustServerCertificate=True;")
-            .EnableSensitiveDataLogging() // ajuda no debug
+            .UseNpgsql(connectionString)   // 🔥 Postgres correto
+            .EnableSensitiveDataLogging()
             .Options;
 
         using var contexto = new LearnlyContexto(options);
 
-        Console.WriteLine("Garantindo banco de dados...");
-        await contexto.Database.EnsureCreatedAsync();
-
-        Console.WriteLine("Banco criado ou já existente.");
+        Console.WriteLine("Aplicando migrations no banco...");
+        await contexto.Database.MigrateAsync();   // 🔥 aplica migrations automaticamente
 
         Console.WriteLine("Iniciando seed das questões ENEM...");
         await EnemSeeder.SeedAsync(contexto);

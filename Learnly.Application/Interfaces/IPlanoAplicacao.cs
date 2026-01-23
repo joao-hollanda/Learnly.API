@@ -11,7 +11,7 @@ namespace Learnly.Application.Interfaces
         Task AtivarPlano(int planoId, int usuarioId);
         Task AdicionarMateria(int planoId, int materiaId, int horasTotais);
         Task LancarHoras(int planoMateriaId, int horas);
-        Task<ResumoGeralUsuarioDto> GerarResumo(int usuarioId);
+        Task<ResumoGeralDto> GerarResumo(int usuarioId);
         Task DesativarPlano(PlanoEstudo plano);
         Task<ComparacaoHorasDto> CompararHorasHojeOntem(int usuarioId);
         Task Excluir (PlanoEstudo plano);

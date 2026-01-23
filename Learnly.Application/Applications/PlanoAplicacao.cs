@@ -141,7 +141,7 @@ namespace Learnly.Application.Applications
             await _planoRepositorio.Salvar();
         }
 
-        public async Task<ResumoGeralUsuarioDto> GerarResumo(int usuarioId)
+        public async Task<ResumoGeralDto> GerarResumo(int usuarioId)
         {
             var usuarioDominio = await _usuarioRepositorio.Obter(usuarioId, true);
 

@@ -1,9 +1,6 @@
-using System.Text;
 using Microsoft.EntityFrameworkCore;
 using Learnly.Domain.Entities.Simulados;
 using Learnly.Repository.Interfaces;
-using Microsoft.VisualBasic;
-using Microsoft.Data.SqlClient;
 
 namespace Learnly.Repository.Repositories
 {
@@ -18,7 +15,6 @@ namespace Learnly.Repository.Repositories
 
         public async Task<int> GerarSimulado(Simulado simulado, List<SimuladoQuestao> questoes)
         {
-
             await using var transaction = await _context.Database.BeginTransactionAsync();
 
             _context.Simulados.Add(simulado);
@@ -34,8 +30,6 @@ namespace Learnly.Repository.Repositories
 
             return simulado.SimuladoId;
         }
-
-
 
         public async Task<List<Questao>> GerarQuestoesAsync(List<string> disciplinas, int totalQuestoes = 25)
         {
@@ -55,14 +49,9 @@ namespace Learnly.Repository.Repositories
                 if (restante > 0) restante--;
 
                 var questoes = await _context.Questoes
-                    .FromSqlRaw(
-                        @"SELECT TOP (@limite) *
-              FROM Questoes
-              WHERE Disciplina = @disciplina
-              ORDER BY NEWID()",
-                        new SqlParameter("@limite", limite),
-                        new SqlParameter("@disciplina", disciplina)
-                    )
+                    .Where(q => q.Disciplina == disciplina)
+                    .OrderBy(q => Guid.NewGuid())
+                    .Take(limite)
                     .Include(q => q.Alternativas)
                     .ToListAsync();
 
@@ -70,15 +59,14 @@ namespace Learnly.Repository.Repositories
             }
 
             return resultado;
-
         }
 
         public async Task<Simulado> Obter(int simuladoId)
         {
             return await _context.Simulados
                 .Include(s => s.Questoes)
-                .ThenInclude(sq => sq.Questao)
-                .ThenInclude(q => q.Alternativas)
+                    .ThenInclude(sq => sq.Questao)
+                        .ThenInclude(q => q.Alternativas)
                 .Include(s => s.Respostas)
                 .FirstOrDefaultAsync(s => s.SimuladoId == simuladoId);
         }
@@ -98,11 +86,15 @@ namespace Learnly.Repository.Repositories
 
         public async Task<Questao> ObterQuestao(int questaoId)
         {
-            return await _context.Questoes.FirstOrDefaultAsync(q => q.QuestaoId == questaoId);
+            return await _context.Questoes
+                .Include(q => q.Alternativas)
+                .FirstOrDefaultAsync(q => q.QuestaoId == questaoId);
         }
+
         public async Task<Alternativa> ObterAlternativa(int alternativaId)
         {
-            return await _context.Alternativas.FirstOrDefaultAsync(a => a.AlternativaId == alternativaId);
+            return await _context.Alternativas
+                .FirstOrDefaultAsync(a => a.AlternativaId == alternativaId);
         }
 
         public async Task ResponderSimulado(Simulado simulado)
@@ -112,7 +104,6 @@ namespace Learnly.Repository.Repositories
             await _context.SaveChangesAsync();
         }
 
-
         public async Task AtualizarSimuladoAsync(List<SimuladoQuestao> simuladoQuestoes)
         {
             _context.SimuladoQuestoes.AddRange(simuladoQuestoes);
@@ -121,17 +112,9 @@ namespace Learnly.Repository.Repositories
 
         public async Task<int> ContarTotal(int usuarioId)
         {
-            var result = _context.TotalSimulados
-                .FromSqlRaw(
-                    "EXEC sp_ContarSimuladosUsuario @UsuarioId = @usuarioId",
-                    new SqlParameter("@usuarioId", usuarioId)
-                )
-                .AsNoTracking()
-                .AsEnumerable()
-                .FirstOrDefault();
-
-            return result?.Total ?? 0;
+            return await _context.Simulados
+                .Where(s => s.UsuarioId == usuarioId)
+                .CountAsync();
         }
-
     }
 }

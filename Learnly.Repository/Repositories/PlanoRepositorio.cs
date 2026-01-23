@@ -1,7 +1,6 @@
 using Learnly.Domain.Entities;
 using Learnly.Domain.Entities.Planos;
 using Learnly.Repository.Interfaces;
-using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 
 namespace Learnly.Repository
@@ -32,10 +31,12 @@ namespace Learnly.Repository
             await _contexto.SaveChangesAsync();
         }
 
-        public async Task<PlanoEstudo> ObterPlanoPorId(int planoId)
+        public async Task<PlanoEstudo?> ObterPlanoPorId(int planoId)
         {
-            return await _contexto.PlanosEstudo.FirstOrDefaultAsync(p => p.PlanoId == planoId);
+            return await _contexto.PlanosEstudo
+                .FirstOrDefaultAsync(p => p.PlanoId == planoId);
         }
+
         public async Task<PlanoMateria?> ObterPlanoMateriaPorId(int planoMateriaId)
         {
             return await _contexto.PlanoMateria
@@ -43,19 +44,26 @@ namespace Learnly.Repository
                 .FirstOrDefaultAsync(pm => pm.PlanoMateriaId == planoMateriaId);
         }
 
-
         public async Task Salvar()
         {
             await _contexto.SaveChangesAsync();
         }
 
-        public async Task<ResumoGeralUsuarioDto?> GerarResumoGeral(int usuarioId)
+        // 🔹 SUBSTITUI A PROCEDURE sp_GerarResumoGeralUsuario
+        public async Task<ResumoGeralDto?> GerarResumoGeral(int usuarioId)
         {
-            return _contexto.ResumoGeral
-                .FromSqlRaw("EXEC dbo.sp_GerarResumoGeralUsuario @UsuarioId",
-                    new SqlParameter("@UsuarioId", usuarioId))
-                .AsEnumerable()
-                .SingleOrDefault();
+            var resumo = await _contexto.PlanosEstudo
+                .Where(p => p.UsuarioId == usuarioId)
+                .SelectMany(p => p.PlanoMaterias)
+                .GroupBy(_ => 1)
+                .Select(g => new ResumoGeralDto
+                {
+                    HorasTotais = g.Sum(x => x.HorasTotais),
+                    HorasConcluidas = g.Sum(x => x.HorasConcluidas)
+                })
+                .FirstOrDefaultAsync();
+
+            return resumo;
         }
 
         public async Task<List<PlanoEstudo>> ListarPorUsuario(int usuarioId)
@@ -90,6 +98,5 @@ namespace Learnly.Repository
                     p.Ativo
                 );
         }
-
     }
 }

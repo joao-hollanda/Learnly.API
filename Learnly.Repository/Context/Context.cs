@@ -8,7 +8,6 @@ using Learnly.Domain.Entities.Planos;
 
 public class LearnlyContexto : DbContext
 {
-    private readonly DbContextOptions _options;
     public DbSet<PlanoEstudo> PlanosEstudo { get; set; }
     public DbSet<Materia> Materias { get; set; }
     public DbSet<PlanoMateria> PlanoMateria { get; set; }
@@ -20,23 +19,11 @@ public class LearnlyContexto : DbContext
     public DbSet<SimuladoQuestao> SimuladoQuestoes { get; set; }
     public DbSet<RespostaSimulado> RespostasSimulado { get; set; }
     public DbSet<Alternativa> Alternativas { get; set; }
-    public DbSet<TotalSimuladosDto> TotalSimulados { get; set; }
-    public DbSet<PlanoDashboardDto> PlanosDashboard { get; set; }
-    public DbSet<ResumoGeralUsuarioDto> ResumoGeral { get; set; }
 
 
-
-    public LearnlyContexto()
-    { }
-
-    public LearnlyContexto(DbContextOptions options) : base(options)
+    public LearnlyContexto(DbContextOptions<LearnlyContexto> options)
+        : base(options)
     {
-        _options = options;
-    }
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    {
-        if (_options == null)
-            optionsBuilder.UseSqlServer("Server=DESKTOP-NFU330V\\SQLEXPRESS;Database=LearnlyDatabase;Trusted_Connection=True;TrustServerCertificate=True;");
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -52,25 +39,5 @@ public class LearnlyContexto : DbContext
         modelBuilder.ApplyConfiguration(new PlanoMateriaConfig());
         modelBuilder.ApplyConfiguration(new EventoEstudoConfig());
         modelBuilder.ApplyConfiguration(new HoraLancadaConfig());
-
-        modelBuilder.Entity<TotalSimuladosDto>(entity =>
-        {
-            entity.HasNoKey();
-            entity.ToView(null);
-        });
-
-        modelBuilder.Entity<PlanoDashboardDto>(entity =>
-        {
-            entity.HasNoKey();
-            entity.ToView(null);
-        });
-
-        modelBuilder.Entity<ResumoGeralUsuarioDto>(entity =>
-        {
-            entity.HasNoKey();
-            entity.ToView(null);
-        });
-
-
     }
 }
