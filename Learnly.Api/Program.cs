@@ -50,10 +50,14 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReact", policy =>
     {
-        policy.WithOrigins("https://learnly-edu.vercel.app")
+        policy.WithOrigins(
+                "https://learnly-edu.vercel.app",
+                "http://localhost:3000"
+              )
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();
+
     });
 });
 #endregion
