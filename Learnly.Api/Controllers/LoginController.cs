@@ -68,5 +68,11 @@ namespace Learnly.Api.Controllers
                 return BadRequest(ex.Message);
             }
         }
+        
+        [HttpGet("ping")]
+        public IActionResult Ping()
+        {
+            return Ok("pong");
+        }
     }
 }
