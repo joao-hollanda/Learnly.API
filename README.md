@@ -162,5 +162,4 @@ Projeto de testes ainda não incluído — seção reservada para evolução fut
 
 ## Autor
 
-**João Victor Hollanda**
-Desenvolvedor Full Stack em formação
+**João Victor Hollanda** - Desenvolvedor Full Stack em formação
