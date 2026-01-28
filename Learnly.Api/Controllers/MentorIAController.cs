@@ -21,17 +21,7 @@ namespace Learnly.Api.Controllers
             if (request?.Mensagens == null || !request.Mensagens.Any())
                 return BadRequest("Mensagens inválidas.");
 
-            var mensagens = new List<Message>
-            {
-                new Message
-                {
-                    role = "system",
-                    content = @"Você é o MentorIA, uma IA educacional.
-Explique de forma clara, objetiva e didática.
-Use exemplos simples quando necessário.
-Faça uma formatação de texto que deixe a leitura clara e fluida."
-                }
-            };
+            var mensagens = new List<Message>();
 
             mensagens.AddRange(request.Mensagens);
 

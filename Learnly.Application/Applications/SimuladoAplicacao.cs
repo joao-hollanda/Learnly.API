@@ -80,7 +80,7 @@ namespace Learnly.Application.Applications
                 await _iaService.GerarFeedbackAsync(simuladoBanco);
 
             simuladoBanco.NotaFinal =
-                (decimal)desempenho.QuantidadeDeAcertos /
+                desempenho.QuantidadeDeAcertos /
                 desempenho.QuantidadeDeQuestoes * 10;
 
             await _simuladoRepositorio.ResponderSimulado(simuladoBanco);

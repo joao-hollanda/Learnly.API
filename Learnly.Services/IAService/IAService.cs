@@ -134,7 +134,21 @@ namespace Learnly.Services.IAService
             return resumo;
         }
 
+        #region Habilidades
+
         private string DetectarHabilidade(Questao q)
+        {
+            return q.Disciplina switch
+            {
+                "linguagens" => DetectarHabilidadeLinguagens(q),
+                "matematica" => DetectarHabilidadeMatematica(q),
+                "ciencias-natureza" => DetectarHabilidadeNatureza(q),
+                "ciencias-humanas" => DetectarHabilidadeHumanas(q),
+                _ => "geral"
+            };
+        }
+
+        private string DetectarHabilidadeLinguagens(Questao q)
         {
             var texto = ((q.Titulo ?? "") + " " + (q.IntroducaoAlternativa ?? "") + " " + (q.Contexto ?? "")).ToLower();
 
@@ -146,7 +160,62 @@ namespace Learnly.Services.IAService
 
             return "geral";
         }
+        private string DetectarHabilidadeMatematica(Questao q)
+        {
+            var texto = ((q.Titulo ?? "") + " " + (q.IntroducaoAlternativa ?? "") + " " + (q.Contexto ?? "")).ToLower();
 
+            if (texto.Contains("porcent")) return "porcentagem";
+            if (texto.Contains("razão") || texto.Contains("propor")) return "razão e proporção";
+            if (texto.Contains("função")) return "funções";
+            if (texto.Contains("gráfico")) return "leitura de gráficos";
+            if (texto.Contains("equação")) return "equações";
+            if (texto.Contains("probabil")) return "probabilidade";
+            if (texto.Contains("geometr")) return "geometria";
+            if (texto.Contains("média") || texto.Contains("estat")) return "estatística";
+
+            return "geral";
+        }
+        private string DetectarHabilidadeNatureza(Questao q)
+        {
+            var texto = ((q.Titulo ?? "") + " " + (q.IntroducaoAlternativa ?? "") + " " + (q.Contexto ?? "")).ToLower();
+
+            if (texto.Contains("reação") || texto.Contains("equação química"))
+                return "reações químicas";
+
+            if (texto.Contains("energia") || texto.Contains("trabalho"))
+                return "energia e trabalho";
+
+            if (texto.Contains("ecossistema") || texto.Contains("cadeia alimentar"))
+                return "ecologia";
+
+            if (texto.Contains("célula") || texto.Contains("dna") || texto.Contains("mitose"))
+                return "biologia celular";
+
+            if (texto.Contains("força") || texto.Contains("movimento"))
+                return "cinemática e dinâmica";
+
+            return "geral";
+        }
+        private string DetectarHabilidadeHumanas(Questao q)
+        {
+            var texto = ((q.Titulo ?? "") + " " + (q.IntroducaoAlternativa ?? "") + " " + (q.Contexto ?? "")).ToLower();
+
+            if (texto.Contains("revolução") || texto.Contains("industrial"))
+                return "processos históricos";
+
+            if (texto.Contains("território") || texto.Contains("espaço geográfico"))
+                return "geografia";
+
+            if (texto.Contains("cidadania") || texto.Contains("estado"))
+                return "política e sociedade";
+
+            if (texto.Contains("cultura") || texto.Contains("identidade"))
+                return "cultura e sociedade";
+
+            return "geral";
+        }
+
+        #endregion
         public async Task<string> Chatbot(List<Message> mensagens)
         {
             try

@@ -31,7 +31,7 @@ namespace Learnly.Repository.Repositories
             return simulado.SimuladoId;
         }
 
-        public async Task<List<Questao>> GerarQuestoesAsync(List<string> disciplinas, int totalQuestoes = 25)
+        public async Task<List<Questao>> GerarQuestoesAsync(List<string> disciplinas, int totalQuestoes)
         {
             if (disciplinas == null || disciplinas.Count == 0)
                 throw new ArgumentException("A lista de disciplinas não pode estar vazia.");
@@ -99,6 +99,17 @@ namespace Learnly.Repository.Repositories
 
         public async Task ResponderSimulado(Simulado simulado)
         {
+            int total = simulado.Questoes.Count;
+            int acertos = 0;
+
+            foreach (var resposta in simulado.Respostas)
+            {
+                if (resposta.Alternativa.Letra == resposta.Questao.AlternativaCorreta)
+                    acertos++;
+            }
+
+            simulado.NotaFinal = Math.Round((decimal)acertos / total * 10, 2);
+
             _context.Simulados.Update(simulado);
             await _context.RespostasSimulado.AddRangeAsync(simulado.Respostas);
             await _context.SaveChangesAsync();

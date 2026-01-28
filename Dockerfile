@@ -8,7 +8,7 @@ COPY . .
 # Restaura dependências
 RUN dotnet restore
 
-# Publica a API (CAMINHO CERTO)
+# Publica a API
 RUN dotnet publish Learnly.Api/Learnly.Api.csproj -c Release -o out
 
 # Etapa 2 - runtime
