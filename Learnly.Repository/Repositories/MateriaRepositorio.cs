@@ -13,10 +13,11 @@ namespace Learnly.Repository.Repositories
             _context = context;
         }
 
-        public async Task<List<Materia>> Listar()
+        public async Task<List<Materia>> Listar(bool geradaPorIa)
         {
             return await _context.Materias
-                .OrderBy(m => m.Nome)
+                .OrderBy(m => m.MateriaId)
+                .Where(m => m.GeradaPorIA == geradaPorIa)
                 .ToListAsync();
         }
 
@@ -24,6 +25,13 @@ namespace Learnly.Repository.Repositories
         {
             return await _context.Materias
                 .FirstOrDefaultAsync(m => m.MateriaId == materiaId);
+        }
+
+        public async Task<Materia?> ObterPorNome(string nome)
+        {
+            return await _context.Materias
+                .FirstOrDefaultAsync(m =>
+                    EF.Functions.ILike(m.Nome, nome));
         }
     }
 }

@@ -2,6 +2,7 @@ using Learnly.Api.Models.Planos.Request;
 using Learnly.Application.Interfaces;
 using Learnly.Domain.Entities;
 using Learnly.Domain.Entities.Planos;
+using Learnly.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Learnly.API.Controllers
@@ -11,16 +12,43 @@ namespace Learnly.API.Controllers
     public class PlanoController : ControllerBase
     {
         private readonly IPlanoAplicacao _planoAplicacao;
+        private readonly IIAService _iaService;
 
-        public PlanoController(IPlanoAplicacao planoAplicacao)
+        public PlanoController(IPlanoAplicacao planoAplicacao, IIAService iaService)
         {
             _planoAplicacao = planoAplicacao;
+            _iaService = iaService;
         }
 
         [HttpPost]
-        [HttpPost]
         public async Task<IActionResult> Criar([FromBody] CriarPlanoDTO dto)
         {
+            if (dto.PlanoIa)
+            {
+                var dtoPlano = new CriarPlanoIADTO
+                {
+                    Titulo = dto.Titulo,
+                    Objetivo = dto.Objetivo,
+                    DataInicio = dto.DataInicio,
+                    DataFim = dto.DataFim,
+                    HorasPorSemana = dto.HorasPorSemana,
+                    UsuarioId = dto.UsuarioId
+                };
+
+                PlanoEstudo planoGerado = await _iaService.GerarPlanoIA(dtoPlano);
+
+                planoGerado.Titulo = dto.Titulo;
+                planoGerado.Objetivo = dto.Objetivo;
+                planoGerado.DataInicio = dto.DataInicio;
+                planoGerado.DataFim = dto.DataFim;
+                planoGerado.HorasPorSemana = dto.HorasPorSemana;
+                planoGerado.UsuarioId = dto.UsuarioId;
+
+                await _planoAplicacao.Criar(planoGerado);
+
+                return Ok(planoGerado);
+            }
+
             var plano = new PlanoEstudo
             {
                 Titulo = dto.Titulo,
@@ -34,7 +62,9 @@ namespace Learnly.API.Controllers
                 Ativo = false
             };
 
+
             await _planoAplicacao.Criar(plano);
+
             return Ok(plano);
         }
 

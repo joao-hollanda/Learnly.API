@@ -19,6 +19,9 @@ namespace Learnly.Infra.Data.Configurations
             builder.Property(pm => pm.HorasConcluidas)
                 .IsRequired();
 
+            builder.Property(pm => pm.Topicos)
+                .IsRequired(false);
+
             builder.HasOne(pm => pm.Plano)
                 .WithMany(p => p.PlanoMaterias)
                 .HasForeignKey(pm => pm.PlanoId)
@@ -28,6 +31,7 @@ namespace Learnly.Infra.Data.Configurations
                 .WithMany(m => m.PlanoMaterias)
                 .HasForeignKey(pm => pm.MateriaId)
                 .OnDelete(DeleteBehavior.Restrict);
+                
         }
     }
 }

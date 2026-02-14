@@ -1,5 +1,7 @@
 using System.Text;
+using System.Text.Json;
 using consumindoIA.Domain;
+using Learnly.Domain.Entities;
 using Learnly.Services.Interfaces;
 using Newtonsoft.Json;
 
@@ -132,6 +134,65 @@ namespace Learnly.Services.IAService
             }
 
             return resumo;
+        }
+
+        public async Task<PlanoEstudo> GerarPlanoIA(CriarPlanoIADTO plano)
+        {
+
+            var messages = new[]
+            {
+        new { role = "system", content = $@"- Materias devem ser relevantes para '{plano.Objetivo}'
+
+- Cada matéria 4-6 tópicos
+
+- Datas 2026
+
+- JSON válido, apenas o objeto, sem explicações
+
+- O plano começa no dia {plano.DataInicio} e termina no {plano.DataFim}
+
+- O usuário tem {plano.HorasPorSemana} horas por semana para estudar
+" },
+        new { role = "user", content = $@"Gere um plano de estudos '{plano.Titulo}' seguindo rigorosamente este schema:
+{{
+  ""HorasPorSemana"": {plano.HorasPorSemana},
+  ""Ativo"": true,
+  ""UsuarioId"": {plano.UsuarioId},
+  ""PlanoMaterias"": [
+    {{
+      ""Materia"": {{
+        ""Nome"": ""Nome da Matéria"",
+        ""GeradaPorIA"": true,
+        ""GeradaPorIA"": true,
+        ""Cor"": ""Cor em formato HEX (#RRGGBB)""
+      ""HorasTotais"": calcule conforme as datas e carga horária semanal. Priorize o que achar mais importante ou dificil
+      ""Topicos"": [""Tópico 1"", ""Tópico 2""]
+    }}
+  ]
+}}" }
+    };
+
+            var requestBody = new
+            {
+                model = "llama-3.3-70b-versatile",
+                messages = messages,
+                temperature = 0.2,
+                response_format = new { type = "json_object" },
+                max_tokens = 1500
+            };
+            
+            
+            var content = new StringContent(JsonConvert.SerializeObject(requestBody), Encoding.UTF8, "application/json");
+
+            var response = await _httpClient.PostAsync("https://api.groq.com/openai/v1/chat/completions", content);
+            response.EnsureSuccessStatusCode();
+
+            var responseBody = await response.Content.ReadAsStringAsync();
+            var resultObj = JsonConvert.DeserializeObject<dynamic>(responseBody);
+
+            string planoJson = resultObj.choices[0].message.content;
+
+            return JsonConvert.DeserializeObject<PlanoEstudo>(planoJson);
         }
 
         #region Habilidades

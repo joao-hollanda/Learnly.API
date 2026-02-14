@@ -12,7 +12,7 @@ namespace Learnly.Domain.Entities.Planos
 
         public string Nome { get; set; }
         public string Cor { get; set; }
-
+        public bool GeradaPorIA { get; set; }
         [JsonIgnore]
         public ICollection<PlanoMateria> PlanoMaterias { get; set; }
     }

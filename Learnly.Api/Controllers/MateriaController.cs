@@ -17,7 +17,7 @@ namespace Learnly.API.Controllers
         [HttpGet]
         public async Task<IActionResult> Listar()
         {
-            var materias = await _materiaAplicacao.Listar();
+            var materias = await _materiaAplicacao.Listar(false);
             return Ok(materias);
         }
     }

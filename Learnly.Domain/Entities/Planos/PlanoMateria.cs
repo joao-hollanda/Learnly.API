@@ -19,5 +19,7 @@ namespace Learnly.Domain.Entities.Planos
 
         public int HorasTotais { get; set; }
         public int HorasConcluidas { get; set; }
+
+        public List<string> Topicos { get; set;}
     }
 }

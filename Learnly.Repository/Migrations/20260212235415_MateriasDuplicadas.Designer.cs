@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Learnly.Repository.Migrations
 {
     [DbContext(typeof(LearnlyContexto))]
-    partial class LearnlyContextoModelSnapshot : ModelSnapshot
+    [Migration("20260212235415_MateriasDuplicadas")]
+    partial class MateriasDuplicadas
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -141,211 +144,6 @@ namespace Learnly.Repository.Migrations
                         .IsUnique();
 
                     b.ToTable("Materias", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            MateriaId = 1,
-                            Cor = "#1ABC9C",
-                            GeradaPorIA = false,
-                            Nome = "Português"
-                        },
-                        new
-                        {
-                            MateriaId = 2,
-                            Cor = "#16A085",
-                            GeradaPorIA = false,
-                            Nome = "Literatura"
-                        },
-                        new
-                        {
-                            MateriaId = 3,
-                            Cor = "#2ECC71",
-                            GeradaPorIA = false,
-                            Nome = "Redação"
-                        },
-                        new
-                        {
-                            MateriaId = 4,
-                            Cor = "#27AE60",
-                            GeradaPorIA = false,
-                            Nome = "Inglês"
-                        },
-                        new
-                        {
-                            MateriaId = 5,
-                            Cor = "#229954",
-                            GeradaPorIA = false,
-                            Nome = "Espanhol"
-                        },
-                        new
-                        {
-                            MateriaId = 6,
-                            Cor = "#3498DB",
-                            GeradaPorIA = false,
-                            Nome = "Matemática"
-                        },
-                        new
-                        {
-                            MateriaId = 7,
-                            Cor = "#2E86C1",
-                            GeradaPorIA = false,
-                            Nome = "Matemática Financeira"
-                        },
-                        new
-                        {
-                            MateriaId = 8,
-                            Cor = "#2874A6",
-                            GeradaPorIA = false,
-                            Nome = "Raciocínio Lógico"
-                        },
-                        new
-                        {
-                            MateriaId = 9,
-                            Cor = "#1F618D",
-                            GeradaPorIA = false,
-                            Nome = "Estatística"
-                        },
-                        new
-                        {
-                            MateriaId = 10,
-                            Cor = "#9B59B6",
-                            GeradaPorIA = false,
-                            Nome = "Física"
-                        },
-                        new
-                        {
-                            MateriaId = 11,
-                            Cor = "#8E44AD",
-                            GeradaPorIA = false,
-                            Nome = "Química"
-                        },
-                        new
-                        {
-                            MateriaId = 12,
-                            Cor = "#7D3C98",
-                            GeradaPorIA = false,
-                            Nome = "Biologia"
-                        },
-                        new
-                        {
-                            MateriaId = 13,
-                            Cor = "#E67E22",
-                            GeradaPorIA = false,
-                            Nome = "História"
-                        },
-                        new
-                        {
-                            MateriaId = 14,
-                            Cor = "#D35400",
-                            GeradaPorIA = false,
-                            Nome = "Geografia"
-                        },
-                        new
-                        {
-                            MateriaId = 15,
-                            Cor = "#CA6F1E",
-                            GeradaPorIA = false,
-                            Nome = "Filosofia"
-                        },
-                        new
-                        {
-                            MateriaId = 16,
-                            Cor = "#BA4A00",
-                            GeradaPorIA = false,
-                            Nome = "Sociologia"
-                        },
-                        new
-                        {
-                            MateriaId = 17,
-                            Cor = "#C0392B",
-                            GeradaPorIA = false,
-                            Nome = "Direito Constitucional"
-                        },
-                        new
-                        {
-                            MateriaId = 18,
-                            Cor = "#A93226",
-                            GeradaPorIA = false,
-                            Nome = "Direito Administrativo"
-                        },
-                        new
-                        {
-                            MateriaId = 19,
-                            Cor = "#922B21",
-                            GeradaPorIA = false,
-                            Nome = "Direito Penal"
-                        },
-                        new
-                        {
-                            MateriaId = 20,
-                            Cor = "#7B241C",
-                            GeradaPorIA = false,
-                            Nome = "Direito Civil"
-                        },
-                        new
-                        {
-                            MateriaId = 21,
-                            Cor = "#5D6D7E",
-                            GeradaPorIA = false,
-                            Nome = "Informática"
-                        },
-                        new
-                        {
-                            MateriaId = 22,
-                            Cor = "#34495E",
-                            GeradaPorIA = false,
-                            Nome = "Algoritmos"
-                        },
-                        new
-                        {
-                            MateriaId = 23,
-                            Cor = "#2C3E50",
-                            GeradaPorIA = false,
-                            Nome = "Estrutura de Dados"
-                        },
-                        new
-                        {
-                            MateriaId = 24,
-                            Cor = "#212F3D",
-                            GeradaPorIA = false,
-                            Nome = "Banco de Dados"
-                        },
-                        new
-                        {
-                            MateriaId = 25,
-                            Cor = "#1B2631",
-                            GeradaPorIA = false,
-                            Nome = "Programação"
-                        },
-                        new
-                        {
-                            MateriaId = 26,
-                            Cor = "#17202A",
-                            GeradaPorIA = false,
-                            Nome = "Engenharia de Software"
-                        },
-                        new
-                        {
-                            MateriaId = 27,
-                            Cor = "#F4D03F",
-                            GeradaPorIA = false,
-                            Nome = "Atualidades"
-                        },
-                        new
-                        {
-                            MateriaId = 28,
-                            Cor = "#F39C12",
-                            GeradaPorIA = false,
-                            Nome = "Interpretação de Texto"
-                        },
-                        new
-                        {
-                            MateriaId = 29,
-                            Cor = "#E59866",
-                            GeradaPorIA = false,
-                            Nome = "Conhecimentos Gerais"
-                        });
                 });
 
             modelBuilder.Entity("Learnly.Domain.Entities.Planos.PlanoMateria", b =>

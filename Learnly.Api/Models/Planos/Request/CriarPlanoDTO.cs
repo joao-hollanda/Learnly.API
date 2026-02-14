@@ -12,5 +12,7 @@ namespace Learnly.Api.Models.Planos.Request
         public int UsuarioId { get; set; }
         public DateTime DataInicio { get; set; }
         public DateTime DataFim { get; set; }
+        public int HorasPorSemana { get; set; } = 0;
+        public bool PlanoIa {get;set;} = false;
     }
 }

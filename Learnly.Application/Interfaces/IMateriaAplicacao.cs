@@ -4,6 +4,6 @@ namespace Learnly.Application.Interfaces
 {
     public interface IMateriaAplicacao
     {
-        Task<List<Materia>> Listar();
+        Task<List<Materia>> Listar(bool geradaPorIa);
     }
 }

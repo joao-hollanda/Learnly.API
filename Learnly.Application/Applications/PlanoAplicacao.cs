@@ -33,12 +33,43 @@ namespace Learnly.Application.Applications
                 string.IsNullOrWhiteSpace(plano.Objetivo))
                 throw new InvalidOperationException("É necessário ter um título e um objetivo!");
 
-
             var totalPlanosUsuario =
                 await _planoRepositorio.ContarPorUsuario(plano.UsuarioId);
 
             if (totalPlanosUsuario >= 5)
                 throw new InvalidOperationException("Limite máximo de 5 planos atingido.");
+
+            plano.PlanoMaterias ??= new List<PlanoMateria>();
+
+            foreach (var planoMateria in plano.PlanoMaterias)
+            {
+                if (planoMateria.Materia == null)
+                    continue;
+
+                var nomeMateria = planoMateria.Materia.Nome?.Trim();
+                if (string.IsNullOrEmpty(nomeMateria))
+                    continue;
+
+                var materiaExistente =
+                    await _materiaRepositorio.ObterPorNome(nomeMateria);
+
+                if (materiaExistente != null)
+                {
+                    planoMateria.Materia = materiaExistente;
+                    planoMateria.MateriaId = materiaExistente.MateriaId;
+                }
+                else
+                {
+                    var novaMateria = new Materia
+                    {
+                        Nome = nomeMateria,
+                        Cor = planoMateria.Materia.Cor,
+                        GeradaPorIA = planoMateria.Materia.GeradaPorIA
+                    };
+
+                    planoMateria.Materia = novaMateria;
+                }
+            }
 
             await _planoRepositorio.Criar(plano);
         }

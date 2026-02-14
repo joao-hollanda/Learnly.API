@@ -13,9 +13,9 @@ namespace Learnly.Application.Applications
             _materiaRepositorio = materiaRepositorio;
         }
 
-        public async Task<List<Materia>> Listar()
+        public async Task<List<Materia>> Listar(bool geradaPorIa)
         {
-            return await _materiaRepositorio.Listar();
+            return await _materiaRepositorio.Listar(geradaPorIa);
         }
     }
 }
