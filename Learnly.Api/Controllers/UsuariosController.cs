@@ -41,50 +41,51 @@ namespace Learnly.Api.Controllers
             }
         }
 
-        [HttpGet]
-        [Route("{usuarioId}")]
-        public async Task<IActionResult> Obter([FromRoute] int usuarioId)
-        {
-            try
-            {
-                var usuarioDominio = await _usuarioAplicacao.Obter(usuarioId);
+        // [HttpGet]
+        // [Route("{usuarioId}")]
+        // public async Task<IActionResult> Obter([FromRoute] int usuarioId)
+        // {
+        //     try
+        //     {
+        //         var usuarioDominio = await _usuarioAplicacao.Obter(usuarioId);
 
-                var usuarioResposta = new UsuarioResponse()
-                {
-                    Id = usuarioDominio.Id,
-                    Nome = usuarioDominio.Nome,
-                    Email = usuarioDominio.Email,
-                };
+        //         var usuarioResposta = new UsuarioResponse()
+        //         {
+        //             Id = usuarioDominio.Id,
+        //             Nome = usuarioDominio.Nome,
+        //             Email = usuarioDominio.Email,
+        //         };
 
-                return Ok(usuarioResposta);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
-        }
+        //         return Ok(usuarioResposta);
+        //     }
+        //     catch (Exception ex)
+        //     {
+        //         return BadRequest(ex.Message);
+        //     }
+        // }
 
-        [HttpGet]
-        public async Task<IActionResult> Listar([FromQuery] bool ativo)
-        {
-            try
-            {
-                var usuariosDominio = await _usuarioAplicacao.Listar(ativo);
+        // [HttpGet]
+        // public async Task<IActionResult> Listar([FromQuery] bool ativo)
+        // {
+            
+        //     try
+        //     {
+        //         var usuariosDominio = await _usuarioAplicacao.Listar(ativo);
 
-                var usuarios = usuariosDominio.Select(u => new UsuarioResponse()
-                {
-                    Id = u.Id,
-                    Nome = u.Nome,
-                    Email = u.Email,
-                }).ToList();
+        //         var usuarios = usuariosDominio.Select(u => new UsuarioResponse()
+        //         {
+        //             Id = u.Id,
+        //             Nome = u.Nome,
+        //             Email = u.Email,
+        //         }).ToList();
 
-                return Ok(usuarios);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
-        }
+        //         return Ok(usuarios);
+        //     }
+        //     catch (Exception ex)
+        //     {
+        //         return BadRequest(ex.Message);
+        //     }
+        // }
 
         [HttpPut]
         [Route("{Id}")]
