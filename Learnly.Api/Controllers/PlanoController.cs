@@ -3,12 +3,14 @@ using Learnly.Application.Interfaces;
 using Learnly.Domain.Entities;
 using Learnly.Domain.Entities.Planos;
 using Learnly.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Learnly.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class PlanoController : ControllerBase
     {
         private readonly IPlanoAplicacao _planoAplicacao;

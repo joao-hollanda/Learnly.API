@@ -3,12 +3,14 @@ using Learnly.Api.Models.Usuarios.Request;
 using Learnly.Api.Models.Usuarios.Response;
 using Learnly.Application.Interfaces;
 using Learnly.Domain.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Learnly.Api.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class UsuariosController : ControllerBase
     {
         private readonly IUsuarioAplicacao _usuarioAplicacao;
@@ -20,6 +22,7 @@ namespace Learnly.Api.Controllers
 
         [HttpPost]
         [Route("Criar")]
+        [AllowAnonymous]
         public async Task<ActionResult> Criar([FromBody] UsuarioCriar usuarioCriar)
         {
             try
@@ -28,7 +31,7 @@ namespace Learnly.Api.Controllers
                 {
                     Nome = usuarioCriar.Nome,
                     Email = usuarioCriar.Email,
-                    Senha = usuarioCriar.Senha,
+                    Senha = usuarioCriar.Senha
                 };
 
                 var usuarioId = await _usuarioAplicacao.Criar(usuarioDominio);

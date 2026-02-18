@@ -99,7 +99,7 @@ builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
     {
-        Title = "API Projeto360",
+        Title = "API Learnly",
         Version = "v1"
     });
 

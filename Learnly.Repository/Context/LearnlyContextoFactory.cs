@@ -7,8 +7,18 @@ public class LearnlyContextoFactory : IDesignTimeDbContextFactory<LearnlyContext
 {
     public LearnlyContexto CreateDbContext(string[] args)
     {
+        var basePath = Directory.GetCurrentDirectory();
+        if (!File.Exists(Path.Combine(basePath, "appsettings.json")))
+        {
+            var apiPath = Path.Combine(basePath, "Learnly.Api");
+            if (Directory.Exists(apiPath))
+                basePath = apiPath;
+            else
+                basePath = Path.Combine(basePath, "..", "Learnly.Api");
+        }
+
         var configuration = new ConfigurationBuilder()
-            .SetBasePath(Directory.GetCurrentDirectory())
+            .SetBasePath(basePath)
             .AddJsonFile("appsettings.json", optional: false)
             .AddEnvironmentVariables()
             .Build();

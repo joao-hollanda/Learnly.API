@@ -3,12 +3,14 @@ using Learnly.Api.Models.Simulados.Response;
 using Learnly.Application.Interfaces;
 using Learnly.Domain.Entities.Simulados;
 using Learnly.Domain.Enums;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Learnly.Api.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class SimuladoController : ControllerBase
     {
         private readonly ISimuladoAplicacao _simuladoAplicacao;

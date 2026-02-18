@@ -1,4 +1,5 @@
 using Learnly.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using consumindoIA.Domain;
 
@@ -6,6 +7,7 @@ namespace Learnly.Api.Controllers
 {
     [ApiController]
     [Route("api/ia")]
+    [Authorize]
     public class IAController : ControllerBase
     {
         private readonly IIAService _iaService;

@@ -1,11 +1,13 @@
 using Learnly.Application.DTOs;
 using Learnly.Application.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Learnly.Api.Controllers
 {
     [ApiController]
     [Route("api/eventos")]
+    [Authorize]
     public class EventosEstudoController : ControllerBase
     {
         private readonly IEventoEstudoAplicacao _aplicacao;

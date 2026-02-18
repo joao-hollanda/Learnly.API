@@ -175,20 +175,21 @@ namespace Learnly.Services.IAService
             var requestBody = new
             {
                 model = "llama-3.3-70b-versatile",
-                messages = messages,
+                messages,
                 temperature = 0.2,
                 response_format = new { type = "json_object" },
                 max_tokens = 1500
             };
-            
-            
+
+
             var content = new StringContent(JsonConvert.SerializeObject(requestBody), Encoding.UTF8, "application/json");
 
             var response = await _httpClient.PostAsync("https://api.groq.com/openai/v1/chat/completions", content);
             response.EnsureSuccessStatusCode();
 
             var responseBody = await response.Content.ReadAsStringAsync();
-            var resultObj = JsonConvert.DeserializeObject<dynamic>(responseBody);
+
+            var resultObj = JsonConvert.DeserializeObject<ChatResponse>(responseBody);
 
             string planoJson = resultObj.choices[0].message.content;
 

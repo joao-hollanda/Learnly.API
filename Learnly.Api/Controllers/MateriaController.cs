@@ -1,10 +1,12 @@
 using Learnly.Application.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Learnly.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class MateriaController : ControllerBase
     {
         private readonly IMateriaAplicacao _materiaAplicacao;
