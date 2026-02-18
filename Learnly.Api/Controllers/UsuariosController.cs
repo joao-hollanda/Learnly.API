@@ -112,21 +112,21 @@ namespace Learnly.Api.Controllers
                 return BadRequest(ex.Message);
             }
         }
-        [HttpPut]
-        [Route("AlterarSenha/{Id}")]
-        public async Task<IActionResult> AlterarSenha([FromRoute] int Id, [FromBody] UsuarioAtualizarSenha usuario)
-        {
-            try
-            {
-                await _usuarioAplicacao.AlterarSenha(Id, usuario.SenhaAntiga, usuario.Senha);
+        // [HttpPut]
+        // [Route("AlterarSenha/{Id}")]
+        // public async Task<IActionResult> AlterarSenha([FromRoute] int Id, [FromBody] UsuarioAtualizarSenha usuario)
+        // {
+        //     try
+        //     {
+        //         await _usuarioAplicacao.AlterarSenha(Id, usuario.SenhaAntiga, usuario.Senha);
 
-                return Ok("Senha alterada com sucesso!");
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
-        }
+        //         return Ok("Senha alterada com sucesso!");
+        //     }
+        //     catch (Exception ex)
+        //     {
+        //         return BadRequest(ex.Message);
+        //     }
+        // }
 
 
         [HttpPut]
