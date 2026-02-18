@@ -10,6 +10,7 @@ using Learnly.Repository.Repositories;
 using Learnly.Services.IAService;
 using Learnly.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
@@ -89,6 +90,39 @@ builder.Services.AddAuthentication(options =>
             Encoding.UTF8.GetBytes(secretKey)
         ),
         ClockSkew = TimeSpan.Zero
+    };
+    
+    options.Events = new Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            if (string.IsNullOrEmpty(context.Token))
+            {
+                var token = context.Request.Cookies["jwt"];
+                if (!string.IsNullOrEmpty(token))
+                {
+                    context.Token = token;
+                }
+            }
+            return System.Threading.Tasks.Task.CompletedTask;
+        },
+        OnAuthenticationFailed = context =>
+        {
+            if (context.Exception is SecurityTokenExpiredException ||
+                context.Exception is SecurityTokenException)
+            {
+                var isProduction = !context.Request.Host.Host.Contains("localhost");
+                var cookieOptions = new CookieOptions
+                {
+                    HttpOnly = true,
+                    Secure = isProduction || context.Request.IsHttps,
+                    SameSite = SameSiteMode.None,
+                    Expires = DateTime.UtcNow.AddDays(-1)
+                };
+                context.Response.Cookies.Append("jwt", "", cookieOptions);
+            }
+            return System.Threading.Tasks.Task.CompletedTask;
+        }
     };
 });
 #endregion

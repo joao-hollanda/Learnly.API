@@ -27,6 +27,25 @@ namespace Learnly.Api.Controllers
             return Ok(new { autenticado = true });
         }
 
+        [HttpGet("user")]
+        [Authorize]
+        public IActionResult GetUser()
+        {
+            var userId = User.FindFirst("id")?.Value;
+            var email = User.FindFirst("email")?.Value;
+            var nome = User.FindFirst("nome")?.Value;
+
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
+
+            return Ok(new
+            {
+                id = int.Parse(userId),
+                email = email,
+                nome = nome
+            });
+        }
+
         [HttpPost]
         public async Task<ActionResult> Login([FromBody] Login loginDTO)
         {
@@ -46,27 +65,74 @@ namespace Learnly.Api.Controllers
 
                 var token = _loginAplicacao.GenerateToken(usuario.Id, usuario.Email, usuario.Nome);
 
+                var isProduction = !Request.Host.Host.Contains("localhost");
                 var cookieOptions = new CookieOptions
                 {
                     HttpOnly = true,
-                    Secure = false,
+                    Secure = isProduction || Request.IsHttps,
                     SameSite = SameSiteMode.None,
-                    Expires = DateTime.UtcNow.AddHours(16)
+                    Expires = DateTime.UtcNow.AddHours(24)
                 };
 
                 Response.Cookies.Append("jwt", token, cookieOptions);
 
-                var resposta = new TokenUsuario
-                {
-                    Token = token
-                };
-
-                return Ok(token);
+                return Ok(new { message = "Login realizado com sucesso" });
             }
             catch (Exception ex)
             {
                 return BadRequest(ex.Message);
             }
+        }
+        
+        [HttpPost("refresh")]
+        [Authorize]
+        public IActionResult RefreshToken()
+        {
+            try
+            {
+                var userId = User.FindFirst("id")?.Value;
+                var email = User.FindFirst("email")?.Value;
+                var nome = User.FindFirst("nome")?.Value;
+
+                if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(email) || string.IsNullOrEmpty(nome))
+                    return Unauthorized("Token inválido");
+
+                var newToken = _loginAplicacao.GenerateToken(int.Parse(userId), email, nome);
+
+                var isProduction = !Request.Host.Host.Contains("localhost");
+                var cookieOptions = new CookieOptions
+                {
+                    HttpOnly = true,
+                    Secure = isProduction || Request.IsHttps,
+                    SameSite = SameSiteMode.None,
+                    Expires = DateTime.UtcNow.AddHours(24)
+                };
+
+                Response.Cookies.Append("jwt", newToken, cookieOptions);
+
+                return Ok(new { message = "Token renovado com sucesso" });
+            }
+            catch (Exception ex)
+            {
+                return Unauthorized("Erro ao renovar token");
+            }
+        }
+        
+        [HttpPost("logout")]
+        [Authorize]
+        public IActionResult Logout()
+        {
+            var isProduction = !Request.Host.Host.Contains("localhost");
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = isProduction || Request.IsHttps,
+                SameSite = SameSiteMode.None,
+                Expires = DateTime.UtcNow.AddDays(-1)
+            };
+            
+            Response.Cookies.Append("jwt", "", cookieOptions);
+            return Ok(new { message = "Logout realizado com sucesso" });
         }
         
         [HttpGet("ping")]
