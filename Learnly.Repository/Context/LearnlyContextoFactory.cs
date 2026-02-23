@@ -26,7 +26,14 @@ public class LearnlyContextoFactory : IDesignTimeDbContextFactory<LearnlyContext
         var connectionString = configuration.GetConnectionString("DefaultConnection");
 
         var optionsBuilder = new DbContextOptionsBuilder<LearnlyContexto>();
-        optionsBuilder.UseNpgsql(connectionString);
+        optionsBuilder.UseNpgsql(connectionString, options =>
+        {
+            options.EnableRetryOnFailure(
+                maxRetryCount: 5,
+                maxRetryDelay: TimeSpan.FromSeconds(10),
+                errorCodesToAdd: null
+            );
+        });
 
         return new LearnlyContexto(optionsBuilder.Options);
     }

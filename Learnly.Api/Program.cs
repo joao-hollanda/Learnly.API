@@ -91,7 +91,7 @@ builder.Services.AddAuthentication(options =>
         ),
         ClockSkew = TimeSpan.Zero
     };
-    
+
     options.Events = new Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerEvents
     {
         OnMessageReceived = context =>
@@ -168,7 +168,17 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.AddControllers();
 
 builder.Services.AddDbContext<LearnlyContexto>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))
+    options.UseNpgsql(
+        builder.Configuration.GetConnectionString("DefaultConnection"),
+        npgsql =>
+        {
+            npgsql.EnableRetryOnFailure(
+                maxRetryCount: 5,
+                maxRetryDelay: TimeSpan.FromSeconds(10),
+                errorCodesToAdd: null
+            );
+        }
+    )
 );
 
 #endregion
