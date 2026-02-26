@@ -76,7 +76,9 @@ namespace Learnly.Api.Controllers
 
                 Response.Cookies.Append("jwt", token, cookieOptions);
 
-                return Ok(new { message = "Login realizado com sucesso" });
+                var message = "Login realizado com sucesso" ;
+
+                return Ok(new { message });
             }
             catch (Exception ex)
             {

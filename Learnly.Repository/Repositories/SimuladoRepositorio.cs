@@ -15,22 +15,34 @@ namespace Learnly.Repository.Repositories
 
         public async Task<int> GerarSimulado(Simulado simulado, List<SimuladoQuestao> questoes)
         {
-            await using var transaction = await _context.Database.BeginTransactionAsync();
+            var strategy = _context.Database.CreateExecutionStrategy();
 
-            _context.Simulados.Add(simulado);
-            await _context.SaveChangesAsync();
+            return await strategy.ExecuteAsync(async () =>
+            {
+                await using var transaction = await _context.Database.BeginTransactionAsync();
 
-            foreach (var q in questoes)
-                q.SimuladoId = simulado.SimuladoId;
+                try
+                {
+                    _context.Simulados.Add(simulado);
+                    await _context.SaveChangesAsync();
 
-            _context.SimuladoQuestoes.AddRange(questoes);
-            await _context.SaveChangesAsync();
+                    foreach (var q in questoes)
+                        q.SimuladoId = simulado.SimuladoId;
 
-            await transaction.CommitAsync();
+                    _context.SimuladoQuestoes.AddRange(questoes);
+                    await _context.SaveChangesAsync();
 
-            return simulado.SimuladoId;
+                    await transaction.CommitAsync();
+
+                    return simulado.SimuladoId;
+                }
+                catch
+                {
+                    await transaction.RollbackAsync();
+                    throw;
+                }
+            });
         }
-
         public async Task<List<Questao>> GerarQuestoesAsync(List<string> disciplinas, int totalQuestoes)
         {
             if (disciplinas == null || disciplinas.Count == 0)
