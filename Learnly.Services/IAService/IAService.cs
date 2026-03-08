@@ -139,19 +139,27 @@ namespace Learnly.Services.IAService
         public async Task<PlanoEstudo> GerarPlanoIA(CriarPlanoIADTO plano)
         {
 
+            int dias = (int)(plano.DataFim - plano.DataInicio).TotalDays;
+
+            double semanasDouble = dias / 7.0;
+
+            int horasTotais = (int)Math.Ceiling(semanasDouble * plano.HorasPorSemana);
+
+            int semanas = (int)Math.Ceiling(semanasDouble);
+
+            int totalMaterias = semanas / 6;
+
+            totalMaterias = Math.Clamp(totalMaterias, 3, 10);
+
             var messages = new[]
             {
         new { role = "system", content = $@"- Materias devem ser relevantes para '{plano.Objetivo}'
-
+- O plano deve ter {totalMaterias} materias
 - Cada matéria 4-6 tópicos
-
 - Datas 2026
-
 - JSON válido, apenas o objeto, sem explicações
-
-- O plano começa no dia {plano.DataInicio} e termina no {plano.DataFim}
-
-- O usuário tem {plano.HorasPorSemana} horas por semana para estudar
+- O plano deve ter {horasTotais} horas totais
+- Deve estar ordenado para suprir dependências
 " },
         new { role = "user", content = $@"Gere um plano de estudos '{plano.Titulo}' seguindo rigorosamente este schema:
 {{
@@ -163,9 +171,8 @@ namespace Learnly.Services.IAService
       ""Materia"": {{
         ""Nome"": ""Nome da Matéria"",
         ""GeradaPorIA"": true,
-        ""GeradaPorIA"": true,
         ""Cor"": ""Cor em formato HEX (#RRGGBB)""
-      ""HorasTotais"": calcule conforme as datas e carga horária semanal. Priorize o que achar mais importante ou dificil
+      ""HorasTotais"": calcule conforme a prioridade e as horas totais
       ""Topicos"": [""Tópico 1"", ""Tópico 2""]
     }}
   ]
