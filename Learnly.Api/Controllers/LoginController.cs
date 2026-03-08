@@ -56,36 +56,33 @@ namespace Learnly.Api.Controllers
                 if (usuario == null)
                     return Unauthorized("Usuário não registrado");
 
-                var auth = await _loginAplicacao.ValidarLogin(loginDTO.Email, loginDTO.Senha);
+                var auth = _loginAplicacao.ValidarLogin(usuario, loginDTO.Senha);
 
                 if (!auth)
-                {
                     return Unauthorized("Usuário ou senha inválido");
-                }
 
                 var token = _loginAplicacao.GenerateToken(usuario.Id, usuario.Email, usuario.Nome);
 
                 var isProduction = !Request.Host.Host.Contains("localhost");
+
                 var cookieOptions = new CookieOptions
                 {
                     HttpOnly = true,
-                    Secure = isProduction || Request.IsHttps,
-                    SameSite = SameSiteMode.None,
+                    Secure = isProduction,
+                    SameSite = isProduction ? SameSiteMode.None : SameSiteMode.Lax,
                     Expires = DateTime.UtcNow.AddHours(24)
                 };
 
                 Response.Cookies.Append("jwt", token, cookieOptions);
 
-                var message = "Login realizado com sucesso" ;
-
-                return Ok(new { message });
+                return Ok(new { message = "Login realizado com sucesso" });
             }
             catch (Exception ex)
             {
                 return BadRequest(ex.Message);
             }
         }
-        
+
         [HttpPost("refresh")]
         [Authorize]
         public IActionResult RefreshToken()
@@ -119,7 +116,7 @@ namespace Learnly.Api.Controllers
                 return Unauthorized("Erro ao renovar token");
             }
         }
-        
+
         [HttpPost("logout")]
         [Authorize]
         public IActionResult Logout()
@@ -132,11 +129,11 @@ namespace Learnly.Api.Controllers
                 SameSite = SameSiteMode.None,
                 Expires = DateTime.UtcNow.AddDays(-1)
             };
-            
+
             Response.Cookies.Append("jwt", "", cookieOptions);
             return Ok(new { message = "Logout realizado com sucesso" });
         }
-        
+
         [HttpGet("ping")]
         public IActionResult Ping()
         {

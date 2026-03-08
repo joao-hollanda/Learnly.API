@@ -23,6 +23,9 @@ namespace Learnly.Repository.Config
                      builder.Property(u => u.Senha)
                             .IsRequired();
 
+                     builder.HasIndex(u => u.Email)
+                            .IsUnique();
+
                      builder.HasMany(u => u.PlanoEstudo)
                             .WithOne(p => p.Usuario)
                             .HasForeignKey(p => p.UsuarioId)

@@ -40,6 +40,7 @@ namespace Learnly.Repository
         public async Task<Usuario> ObterPorEmail(string email)
         {
             return await _contexto.Usuarios
+                .AsNoTracking()
                 .Where(u => u.Email == email)
                 .Where(u => u.StatusConta == true)
                 .FirstOrDefaultAsync();
