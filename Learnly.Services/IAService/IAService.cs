@@ -28,29 +28,25 @@ namespace Learnly.Services.IAService
                     new Message
                     {
                         role = "system",
-                        content = @"Você é um Mentor de Performance para o ENEM. 
-                        Seu estilo de escrita é direto, técnico e encorajador. 
-                        Em vez de listas simples, você cria conexões entre o erro do aluno e o que ele precisa fazer para subir de nível."
+                        content = @"Você é um mentor direto e experiente no ENEM. 
+                        Você analisa dados de simulado e entrega um diagnóstico honesto em linguagem simples — 
+                        sem enrolação, sem elogios vazios. Fale como alguém que já corrigiu milhares de provas."
                     },
                     new Message
                     {
                         role = "user",
-                        content = $@"
-                        Dados do simulado:
-                        {jsonResumo}
+                        content = $@"Analise os dados deste simulado e gere um feedback em 3 blocos curtos (máximo 3 linhas cada):
+{simulado.Desempenho.QuantidadeDeAcertos}/{simulado.Desempenho.QuantidadeDeQuestoes} acertos
 
-                        Gere um feedback estruturado da seguinte forma (sem usar bullets):
+{jsonResumo} 
 
-                        1. **Análise de Proficiência (Onde você está)**: 
-                        Um parágrafo curto analisando a coerência do desempenho. Foque se o aluno está perdendo pontos em conteúdos base (TRI) ou se o problema é fôlego de prova.
+**Onde você está:** diagnóstico do nível atual — o aluno está errando por falta de base ou por gestão de prova?
 
-                        2. **Gargalos Identificados (O que te trava)**: 
-                        Um texto fluido que conecte os erros a um padrão. Exemplo: 'Notei que o tempo gasto em questões de Exatas está prejudicando seu desempenho em Linguagens, indicando uma necessidade de priorização.'
+**O que te trava:** qual é o padrão de erro? Conecte áreas, tempo gasto e tipo de questão em uma frase cirúrgica.
 
-                        3. **Roteiro de Evolução (O próximo passo)**: 
-                        Uma instrução clara e prática do que ele deve estudar amanhã e como deve mudar a estratégia de resolução na próxima prova.
+**O que fazer amanhã:** uma ação concreta e específica — conteúdo ou estratégia, não generalidades.
 
-                        Use negrito para termos técnicos e métricas importantes. Evite listas, prefira um texto que pareça uma conversa de mentoria rápida, evitando extender muito (Opte por 3-4 linhas por tópico)."
+Seja direto. Use **negrito** só para o que realmente importa. Sem listas, sem introdução, sem conclusão motivacional."
                     }
                 };
 
