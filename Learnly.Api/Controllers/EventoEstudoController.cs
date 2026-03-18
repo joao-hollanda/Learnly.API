@@ -1,6 +1,8 @@
+using Learnly.API.Controllers;
 using Learnly.Application.DTOs;
 using Learnly.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Learnly.Api.Controllers
@@ -8,7 +10,7 @@ namespace Learnly.Api.Controllers
     [ApiController]
     [Route("api/eventos")]
     [Authorize]
-    public class EventosEstudoController : ControllerBase
+    public class EventosEstudoController : BaseController
     {
         private readonly IEventoEstudoAplicacao _aplicacao;
 
@@ -17,10 +19,13 @@ namespace Learnly.Api.Controllers
             _aplicacao = aplicacao;
         }
 
-        [HttpGet("usuario/{usuarioId}")]
-        public async Task<IActionResult> Listar(int usuarioId)
+        [HttpGet]
+        public async Task<IActionResult> Listar()
         {
-            var eventos = await _aplicacao.Listar(usuarioId);
+            var usuarioId = GetUserId();
+            if (usuarioId == null) return Unauthorized();
+
+            var eventos = await _aplicacao.Listar((int)usuarioId);
             return Ok(eventos);
         }
 
@@ -37,10 +42,13 @@ namespace Learnly.Api.Controllers
             return NoContent();
         }
 
-        [HttpDelete("{usuarioId}")]
-        public async Task<IActionResult> Remover(int usuarioId)
+        [HttpDelete]
+        public async Task<IActionResult> Remover()
         {
-            await _aplicacao.Remover(usuarioId);
+            var usuarioId = GetUserId();
+            if (usuarioId == null) return Unauthorized();
+
+            await _aplicacao.Remover((int)usuarioId);
             return NoContent();
         }
 

@@ -5,13 +5,14 @@ using Learnly.Application.Interfaces;
 using Learnly.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Learnly.API.Controllers;
 
 namespace Learnly.Api.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
     [Authorize]
-    public class UsuariosController : ControllerBase
+    public class UsuariosController : BaseController
     {
         private readonly IUsuarioAplicacao _usuarioAplicacao;
 
@@ -91,14 +92,16 @@ namespace Learnly.Api.Controllers
         // }
 
         [HttpPut]
-        [Route("{Id}")]
-        public async Task<IActionResult> Atualizar([FromRoute] int Id, [FromBody] UsuarioAtualizar usuario)
+        public async Task<IActionResult> Atualizar([FromBody] UsuarioAtualizar usuario)
         {
+            var usuarioId = GetUserId();
+            if (usuarioId == null) return Unauthorized();
+
             try
             {
                 var usuarioDominio = new Usuario()
                 {
-                    Id = Id,
+                    Id = usuarioId,
                     Nome = usuario.Nome,
                     Email = usuario.Email,
                 };

@@ -11,7 +11,7 @@ namespace Learnly.API.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Authorize]
-    public class PlanoController : ControllerBase
+    public class PlanoController : BaseController
     {
         private readonly IPlanoAplicacao _planoAplicacao;
         private readonly IIAService _iaService;
@@ -25,6 +25,9 @@ namespace Learnly.API.Controllers
         [HttpPost]
         public async Task<IActionResult> Criar([FromBody] CriarPlanoDTO dto)
         {
+            var usuarioId = GetUserId();
+            if (usuarioId == null) return Unauthorized();
+
             if (dto.PlanoIa)
             {
                 var dtoPlano = new CriarPlanoIADTO
@@ -34,20 +37,18 @@ namespace Learnly.API.Controllers
                     DataInicio = dto.DataInicio,
                     DataFim = dto.DataFim,
                     HorasPorSemana = dto.HorasPorSemana,
-                    UsuarioId = dto.UsuarioId
+                    UsuarioId = (int)usuarioId
                 };
 
                 PlanoEstudo planoGerado = await _iaService.GerarPlanoIA(dtoPlano);
-
                 planoGerado.Titulo = dto.Titulo;
                 planoGerado.Objetivo = dto.Objetivo;
                 planoGerado.DataInicio = dto.DataInicio;
                 planoGerado.DataFim = dto.DataFim;
                 planoGerado.HorasPorSemana = dto.HorasPorSemana;
-                planoGerado.UsuarioId = dto.UsuarioId;
+                planoGerado.UsuarioId = usuarioId.Value;
 
                 await _planoAplicacao.Criar(planoGerado);
-
                 return Ok(planoGerado);
             }
 
@@ -55,18 +56,14 @@ namespace Learnly.API.Controllers
             {
                 Titulo = dto.Titulo,
                 Objetivo = dto.Objetivo,
-                UsuarioId = dto.UsuarioId,
-
+                UsuarioId = usuarioId.Value,
                 DataInicio = DateTime.SpecifyKind(dto.DataInicio, DateTimeKind.Utc),
                 DataFim = DateTime.SpecifyKind(dto.DataFim, DateTimeKind.Utc),
-
                 HorasPorSemana = 0,
                 Ativo = false
             };
 
-
             await _planoAplicacao.Criar(plano);
-
             return Ok(plano);
         }
 
@@ -78,17 +75,33 @@ namespace Learnly.API.Controllers
             return Ok(plano);
         }
 
-        [HttpGet("usuario/{usuarioId}")]
-        public async Task<IActionResult> Listar5(int usuarioId)
+        [HttpGet()]
+        public async Task<IActionResult> Listar5()
         {
-            var planos = await _planoAplicacao.Listar5(usuarioId);
-            return Ok(planos);
+            var usuarioId = GetUserId();
+            if (usuarioId != null)
+            {
+                var planos = await _planoAplicacao.Listar5((int)usuarioId);
+                return Ok(planos);
+            }
+            else
+            {
+                return Forbid();
+            }
         }
 
-        [HttpGet("gerar-resumo/{usuarioId}")]
-        public async Task<ActionResult<ResumoGeralDto>> ObterResumoGeral(int usuarioId)
+        [HttpGet("gerar-resumo")]
+        public async Task<ActionResult<ResumoGeralDto>> ObterResumoGeral()
         {
-            return Ok(await _planoAplicacao.GerarResumo(usuarioId));
+            var usuarioId = GetUserId();
+            if (usuarioId != null)
+            {
+                return Ok(await _planoAplicacao.GerarResumo((int)usuarioId));
+            }
+            else
+            {
+                return Forbid();
+            }
         }
 
 
@@ -100,10 +113,18 @@ namespace Learnly.API.Controllers
         }
 
         [HttpPut("{planoId}/ativar")]
-        public async Task<IActionResult> AtivarPlano(int planoId, [FromQuery] int usuarioId)
+        public async Task<IActionResult> AtivarPlano(int planoId)
         {
-            await _planoAplicacao.AtivarPlano(planoId, usuarioId);
-            return NoContent();
+            var usuarioId = GetUserId();
+            if (usuarioId != null)
+            {
+                await _planoAplicacao.AtivarPlano(planoId, (int)usuarioId);
+                return NoContent();
+            }
+            else
+            {
+                return Forbid();
+            }
         }
 
         [HttpPost("{planoId}/materia")]
@@ -144,11 +165,19 @@ namespace Learnly.API.Controllers
         }
 
 
-        [HttpGet("horas/comparacao/{usuarioId}")]
-        public async Task<IActionResult> CompararHorasHojeOntem(int usuarioId)
+        [HttpGet("horas/comparacao")]
+        public async Task<IActionResult> CompararHorasHojeOntem()
         {
-            var comparacao = await _planoAplicacao.CompararHorasHojeOntem(usuarioId);
-            return Ok(comparacao);
+            var usuarioId = GetUserId();
+            if (usuarioId != null)
+            {
+                var comparacao = await _planoAplicacao.CompararHorasHojeOntem((int)usuarioId);
+                return Ok(comparacao);
+            }
+            else
+            {
+                return Forbid();
+            }
         }
 
         [HttpDelete("{planoId}")]
@@ -168,11 +197,19 @@ namespace Learnly.API.Controllers
             }
         }
 
-        [HttpGet("plano-ativo/{usuarioId}")]
-        public async Task<IActionResult> ObterPlanoAtivo(int usuarioId)
+        [HttpGet("plano-ativo")]
+        public async Task<IActionResult> ObterPlanoAtivo()
         {
-            var plano = await _planoAplicacao.ObterPlanoAtivo(usuarioId);
-            return Ok(plano);
+            var usuarioId = GetUserId();
+            if (usuarioId != null)
+            {
+                var plano = await _planoAplicacao.ObterPlanoAtivo((int)usuarioId);
+                return Ok(plano);
+            }
+            else
+            {
+                return Forbid();
+            }
         }
 
 

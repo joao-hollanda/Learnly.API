@@ -40,7 +40,7 @@ namespace Learnly.Api.Controllers
 
             return Ok(new
             {
-                id = int.Parse(userId),
+                id = int.TryParse(userId, out var id) ? id : 0,
                 email = email,
                 nome = nome
             });
