@@ -36,7 +36,7 @@ namespace Learnly.Api.Controllers
                 request.Titulo,
                 request.Inicio,
                 request.Fim,
-                request.UsuarioId
+                (int)GetUserId()
             );
 
             return NoContent();
@@ -56,7 +56,7 @@ namespace Learnly.Api.Controllers
         public async Task<IActionResult> CriarLote([FromBody] CriarEventosEstudoLoteDto request)
         {
             await _aplicacao.CriarEmLote(
-                request.UsuarioId,
+                (int)GetUserId(),
                 request.Eventos
             );
 
@@ -68,7 +68,6 @@ namespace Learnly.Api.Controllers
     public record CriarEventoRequest(
         string Titulo,
         DateTime Inicio,
-        DateTime Fim,
-        int UsuarioId
+        DateTime Fim
     );
 }

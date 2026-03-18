@@ -97,12 +97,12 @@ namespace Learnly.Api.Controllers
             try
             {
                 var simulado = await _simuladoAplicacao.Obter(simuladoId);
-
-                if (simulado.UsuarioId != GetUserId())
-                    return Forbid();
-
+            
                 if (simulado == null)
                     return NotFound("Simulado não encontrado");
+
+                if (simulado.UsuarioId != GetUserId())
+                    return Forbid("Este simulado pertence a outro usuário!");
 
                 var dto = new SimuladoObter
                 {
