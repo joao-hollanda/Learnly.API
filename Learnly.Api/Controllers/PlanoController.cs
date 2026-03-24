@@ -60,7 +60,6 @@ namespace Learnly.API.Controllers
                 DataInicio = DateTime.SpecifyKind(dto.DataInicio, DateTimeKind.Utc),
                 DataFim = DateTime.SpecifyKind(dto.DataFim, DateTimeKind.Utc),
                 HorasPorSemana = 0,
-                Ativo = false
             };
 
             await _planoAplicacao.Criar(plano);
@@ -72,6 +71,9 @@ namespace Learnly.API.Controllers
         public async Task<IActionResult> Obter(int planoId)
         {
             var plano = await _planoAplicacao.Obter(planoId);
+            if (plano.UsuarioId != GetUserId())
+                return Forbid();
+
             return Ok(plano);
         }
 
@@ -191,9 +193,9 @@ namespace Learnly.API.Controllers
 
                 return NoContent();
             }
-            catch (Exception ex)
+            catch
             {
-                return BadRequest(ex.Message);
+                return BadRequest("Houve um erro ao fazer a requisição");
             }
         }
 

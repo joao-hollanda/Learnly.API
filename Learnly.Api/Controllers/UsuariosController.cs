@@ -71,7 +71,7 @@ namespace Learnly.Api.Controllers
         // [HttpGet]
         // public async Task<IActionResult> Listar([FromQuery] bool ativo)
         // {
-            
+
         //     try
         //     {
         //         var usuariosDominio = await _usuarioAplicacao.Listar(ativo);
@@ -110,9 +110,9 @@ namespace Learnly.Api.Controllers
 
                 return Ok();
             }
-            catch (Exception ex)
+            catch
             {
-                return BadRequest(ex.Message);
+                return BadRequest("Houve um erro ao fazer a requisição");
             }
         }
         // [HttpPut]
@@ -134,32 +134,39 @@ namespace Learnly.Api.Controllers
 
         [HttpPut]
         [Route("Reativar/{usuarioId}")]
-        public async Task<IActionResult> Reativar([FromRoute] int usuarioId)
+        public async Task<IActionResult> Reativar()
         {
             try
             {
-                await _usuarioAplicacao.Reativar(usuarioId);
+                var usuarioId = GetUserId();
+                if (usuarioId == null)
+                    return Forbid();
+
+                await _usuarioAplicacao.Reativar((int)usuarioId);
 
                 return Ok();
             }
-            catch (Exception ex)
+            catch 
             {
-                return BadRequest(ex.Message);
+                return BadRequest("Houve um erro ao fazer a requisição");
             }
         }
 
         [HttpDelete("Desativar/{usuarioId}")]
-        public async Task<IActionResult> Desativar([FromRoute] int usuarioId)
+        public async Task<IActionResult> Desativar()
         {
             try
             {
-                await _usuarioAplicacao.Desativar(usuarioId);
+                var usuarioId = GetUserId();
+                if (usuarioId == null)
+                    return Forbid();
+                await _usuarioAplicacao.Desativar((int)usuarioId);
 
                 return Ok();
             }
-            catch (Exception ex)
+            catch 
             {
-                return BadRequest(ex.Message);
+                return BadRequest("Houve um erro ao fazer a requisição");
             }
         }
     }

@@ -62,7 +62,7 @@ namespace Learnly.Repository.Repositories
 
                 var questoes = await _context.Questoes
                     .Where(q => q.Disciplina == disciplina)
-                    .OrderBy(q => Guid.NewGuid())
+                    .OrderBy(q => EF.Functions.Random())
                     .Take(limite)
                     .Include(q => q.Alternativas)
                     .ToListAsync();

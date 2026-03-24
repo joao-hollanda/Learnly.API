@@ -77,9 +77,9 @@ namespace Learnly.Api.Controllers
 
                 return Ok(new { message = "Login realizado com sucesso" });
             }
-            catch (Exception ex)
+            catch
             {
-                return BadRequest(ex.Message);
+                return BadRequest("Houve um erro ao fazer a requisição");
             }
         }
 
