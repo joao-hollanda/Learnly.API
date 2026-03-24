@@ -39,9 +39,10 @@ namespace Learnly.Api.Controllers
 
                 return Ok(usuarioId);
             }
-            catch (Exception ex)
+            catch
             {
-                return BadRequest(ex.Message);
+                return BadRequest("Houve um erro ao fazer a requisição");
+
             }
         }
 
@@ -146,7 +147,7 @@ namespace Learnly.Api.Controllers
 
                 return Ok();
             }
-            catch 
+            catch
             {
                 return BadRequest("Houve um erro ao fazer a requisição");
             }
@@ -164,7 +165,7 @@ namespace Learnly.Api.Controllers
 
                 return Ok();
             }
-            catch 
+            catch
             {
                 return BadRequest("Houve um erro ao fazer a requisição");
             }

@@ -110,6 +110,7 @@ namespace Learnly.API.Controllers
         [HttpPut]
         public async Task<IActionResult> Atualizar([FromBody] PlanoEstudo plano)
         {
+            if (plano.UsuarioId != GetUserId()) return Forbid();
             await _planoAplicacao.Atualizar(plano);
             return NoContent();
         }
@@ -134,6 +135,10 @@ namespace Learnly.API.Controllers
             int planoId,
             [FromBody] AdicionarPlanoMateriaDTO dto)
         {
+            var plano = await _planoAplicacao.Obter(planoId);
+
+            if (plano.UsuarioId != GetUserId()) return Forbid();
+
             await _planoAplicacao.AdicionarMateria(
                 planoId,
                 dto.MateriaId,
@@ -157,6 +162,8 @@ namespace Learnly.API.Controllers
         public async Task<IActionResult> DesativarPlano(int planoId)
         {
             var plano = await _planoAplicacao.Obter(planoId);
+
+            if (plano.UsuarioId != GetUserId()) return Forbid();
 
             if (plano == null)
                 return NotFound("Plano não encontrado!");
@@ -188,6 +195,8 @@ namespace Learnly.API.Controllers
             try
             {
                 var plano = await _planoAplicacao.Obter(planoId);
+
+                if (plano.UsuarioId != GetUserId()) return Forbid();
 
                 await _planoAplicacao.Excluir(plano);
 
