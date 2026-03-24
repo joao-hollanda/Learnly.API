@@ -94,14 +94,14 @@ namespace Learnly.Api.Controllers
         [HttpPut]
         public async Task<IActionResult> Atualizar([FromBody] UsuarioAtualizar usuario)
         {
-            var usuarioId = (int)GetUserId();
+            var usuarioId = GetUserId();
             if (usuarioId == null) return Unauthorized();
 
             try
             {
                 var usuarioDominio = new Usuario()
                 {
-                    Id = usuarioId,
+                    Id = (int)usuarioId,
                     Nome = usuario.Nome,
                     Email = usuario.Email,
                 };

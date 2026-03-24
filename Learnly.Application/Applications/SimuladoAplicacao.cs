@@ -69,7 +69,7 @@ namespace Learnly.Application.Applications
                 if (resposta.Questao.AlternativaCorreta == resposta.Alternativa.Letra)
                     resposta.Alternativa.Correta = true;
             }
-            
+
             desempenho.QuantidadeDeQuestoes = simuladoBanco.Questoes.Count;
             desempenho.QuantidadeDeAcertos = simulado.Respostas.Count(r => r.Alternativa.Correta);
 
@@ -78,6 +78,36 @@ namespace Learnly.Application.Applications
 
             simuladoBanco.Desempenho.Feedback =
                 await _iaService.GerarFeedbackAsync(simuladoBanco);
+
+            var questoesErradas = simuladoBanco.Questoes
+                .Where(q =>
+                {
+                    if (q.Questao == null) return false;
+
+                    if (q.Questao.Arquivos != null) return false;
+
+                    var resposta = simuladoBanco.Respostas.FirstOrDefault(r => r.QuestaoId == q.QuestaoId);
+                    if (resposta == null) return false;
+
+                    var alternativaCorreta = q.Questao.Alternativas
+                        .FirstOrDefault(a => a.Letra == q.Questao.AlternativaCorreta);
+                    if (alternativaCorreta == null) return false;
+
+                    return resposta.AlternativaId != alternativaCorreta.AlternativaId;
+                })
+                .ToList();
+
+            var respostas = simuladoBanco.Respostas
+                            .ToDictionary(r => r.QuestaoId);
+
+            var respostasComExplicacao = await _iaService.GerarExplicacoes(questoesErradas, respostas);
+
+            foreach (var resposta in respostasComExplicacao)
+            {
+                var respostaSimulado = simulado.Respostas.FirstOrDefault(r => r.QuestaoId == resposta.QuestaoId);
+                if (respostaSimulado != null)
+                    respostaSimulado.Explicacao = resposta.Explicacao;
+            }
 
             simuladoBanco.NotaFinal =
                 desempenho.QuantidadeDeAcertos /
@@ -100,19 +130,19 @@ namespace Learnly.Application.Applications
         {
             var usuarioDominio = await _usuarioRepositorio.Obter(id, true);
 
-            if(usuarioDominio == null)
+            if (usuarioDominio == null)
                 throw new Exception("Usuário não encontrado");
 
             return await _simuladoRepositorio.Listar5(id);
         }
 
-        public async Task<int> Contar (int usuarioId)
+        public async Task<int> Contar(int usuarioId)
         {
             var usuarioDominio = await _usuarioRepositorio.Obter(usuarioId, true);
 
-            if(usuarioDominio == null)
+            if (usuarioDominio == null)
                 throw new Exception("Usuário não encontrado!");
-            
+
             return await _simuladoRepositorio.ContarTotal(usuarioId);
         }
     }

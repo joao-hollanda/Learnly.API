@@ -86,6 +86,7 @@ namespace Learnly.Api.Controllers
             }
             catch (Exception ex)
             {
+                Console.WriteLine(ex);
                 return BadRequest(ex.Message);
             }
         }
@@ -131,7 +132,8 @@ namespace Learnly.Api.Controllers
                     Respostas = simulado.Respostas.Select(r => new RespostaSimuladoDto
                     {
                         QuestaoId = r.QuestaoId,
-                        AlternativaId = r.AlternativaId
+                        AlternativaId = r.AlternativaId,
+                        Explicacao = r.Explicacao
                     }).ToList()
                 };
 
@@ -185,7 +187,8 @@ namespace Learnly.Api.Controllers
                             Respostas = simulado.Respostas.Select(r => new RespostaSimuladoDto
                             {
                                 QuestaoId = r.QuestaoId,
-                                AlternativaId = r.AlternativaId
+                                AlternativaId = r.AlternativaId,
+                                Explicacao = r.Explicacao
                             }).ToList()
                         };
 

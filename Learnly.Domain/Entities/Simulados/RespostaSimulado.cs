@@ -12,5 +12,7 @@ namespace Learnly.Domain.Entities.Simulados
 
         public int AlternativaId { get; set; }
         public Alternativa Alternativa { get; set; }
+
+        public string? Explicacao { get; set; }
     }
 }

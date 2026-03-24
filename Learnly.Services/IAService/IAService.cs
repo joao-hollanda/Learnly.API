@@ -2,6 +2,7 @@ using System.Text;
 using System.Text.Json;
 using consumindoIA.Domain;
 using Learnly.Domain.Entities;
+using Learnly.Domain.Entities.Simulados;
 using Learnly.Services.Interfaces;
 using Newtonsoft.Json;
 
@@ -52,7 +53,7 @@ Seja direto. Use **negrito** só para o que realmente importa. Sem listas, sem i
 
                 var request = new ChatRequest
                 {
-                    model = "moonshotai/kimi-k2-instruct",
+                    model = "llama-3.1-8b-instant",
                     messages = mensagens,
                     temperature = 0.5
                 };
@@ -325,5 +326,95 @@ Você não pode em HIPÓTESE alguma responder perguntas que remetam a crimes (en
                 return ex.Message;
             }
         }
+
+
+        public async Task<List<ExplicacaoQuestao>> GerarExplicacoes(
+                        List<SimuladoQuestao> questoesErradas,
+                        Dictionary<int, RespostaSimulado> respostas)
+        {
+            try
+            {
+                var questoesJson = JsonConvert.SerializeObject(
+                    questoesErradas.Select(q =>
+                    {
+                        var respostaUsuario = respostas.GetValueOrDefault(q.QuestaoId);
+
+                        return new
+                        {
+                            q.QuestaoId,
+                            q.Questao.Titulo,
+                            q.Questao.Contexto,
+
+                            Alternativas = q.Questao.Alternativas.Select(a => new
+                            {
+                                a.AlternativaId,
+                                a.Texto,
+                                a.Correta
+                            }),
+
+                            RespostaUsuario = new
+                            {
+                                respostaUsuario?.AlternativaId,
+                                respostaUsuario?.Alternativa?.Texto
+                            },
+
+                            RespostaCorreta = q.Questao.Alternativas
+                                .Where(a => a.Correta)
+                                .Select(a => new { a.AlternativaId, a.Texto })
+                                .FirstOrDefault()
+                        };
+                    }),
+                    Formatting.Indented
+                );
+
+                var mensagens = new List<Message>
+        {
+            new Message
+            {
+                role = "system",
+                content = @$"Para cada questão em que o aluno errou no simulado do ENEM, responda à seguinte pergunta: por que está errada?
+
+Liste cada questão recebida e explique de forma clara, direta e didática o motivo do erro, destacando por que a alternativa escolhida não está correta e qual seria o raciocínio adequado para chegar à resposta certa. Dirija o feedback diretamente ao aluno, usando VOCÊ como pronome
+
+{questoesJson}
+
+Responda usando EXCLUSIVAMENTE um array JSON no seguinte formato (sem comentários, sem textos fora do JSON, explicacao em markdown):
+
+[
+  {{
+    ""QuestaoId"": <id da questão>,
+    ""Explicacao"": ""explique por que a resposta do aluno está errada e como chegar à correta, em linguagem acessível""
+  }}
+]
+
+Não adicione quaisquer textos fora desse objeto JSON; apenas a explicação de cada erro, conforme descrito acima."
+            }
+        };
+
+                var request = new
+                {
+                    model = "llama-3.1-8b-instant",
+                    messages = mensagens,
+                    temperature = 0.2,
+                };
+
+                var content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
+
+                var response = await _httpClient.PostAsync("https://api.groq.com/openai/v1/chat/completions", content);
+                response.EnsureSuccessStatusCode();
+
+                var responseBody = await response.Content.ReadAsStringAsync();
+                var resultObj = JsonConvert.DeserializeObject<ChatResponse>(responseBody);
+                string questoes = resultObj.choices[0].message.content;
+
+                return JsonConvert.DeserializeObject<List<ExplicacaoQuestao>>(questoes);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                throw new Exception("Erro ao fazer requisição");
+            }
+        }
     }
 }
+

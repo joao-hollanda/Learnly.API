@@ -13,6 +13,9 @@ namespace Learnly.Repository.Config
             // Chave primária
             builder.HasKey(r => r.RespostaId);
 
+            builder.Property(r => r.Explicacao)
+                   .IsRequired(false);
+                   
             // Relacionamento com Simulado
             builder.HasOne(r => r.Simulado)
                    .WithMany(s => s.Respostas)
