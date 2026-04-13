@@ -190,26 +190,9 @@ namespace Learnly.Application.Applications
 
         public async Task<ComparacaoHorasDto> CompararHorasHojeOntem(int usuarioId)
         {
-            var usuario = await _usuarioRepositorio.Obter(usuarioId, true);
+            var comparacao = await _planoRepositorio.CompararHoras(usuarioId);
 
-            if (usuario == null)
-                throw new Exception("Usuário não encontrado");
-
-            var hoje = DateTime.UtcNow.Date;
-            var ontem = hoje.AddDays(-1);
-
-            var horasHoje = await _horaLancadaRepositorio
-                .SomarHorasPeriodoAsync(usuarioId, hoje, hoje);
-
-            var horasOntem = await _horaLancadaRepositorio
-                .SomarHorasPeriodoAsync(usuarioId, ontem, ontem);
-
-            return new ComparacaoHorasDto
-            {
-                HorasHoje = horasHoje,
-                HorasOntem = horasOntem,
-                Diferenca = horasHoje - horasOntem
-            };
+            return comparacao ?? new ComparacaoHorasDto();
         }
 
         public async Task Excluir(PlanoEstudo plano)

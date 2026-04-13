@@ -11,6 +11,7 @@ namespace Learnly.Repository.Interfaces
         Task<PlanoMateria?> ObterPlanoMateriaPorId(int planoMateriaId);
         Task Salvar();
         Task<ResumoGeralDto> GerarResumoGeral(int usuarioId);
+        Task<ComparacaoHorasDto?> CompararHoras(int usuarioId);
         Task<PlanoEstudo> ObterPlanoPorId(int planoId);
         Task<List<PlanoEstudo>> ListarPorUsuario(int usuarioId);
         Task Excluir (PlanoEstudo plano);
