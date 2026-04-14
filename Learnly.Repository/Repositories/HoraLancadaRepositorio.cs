@@ -10,11 +10,11 @@ namespace Learnly.Repository
         {
         }
 
-public async Task LancarHorasAsync(HoraLancada horaLancada)
+        public async Task LancarHorasAsync(HoraLancada horaLancada)
         {
-            await _contexto.Database.ExecuteSqlRawAsync("CALL sp_lancar_horas({0}, {1}, {2})", 
+            await _contexto.Database.ExecuteSqlRawAsync("CALL sp_lancar_horas({0}, {1}::date, {2})", 
                 horaLancada.UsuarioId, 
-                horaLancada.Data.Date, 
+                horaLancada.Data, 
                 horaLancada.QuantdadeHoras);
         }
 
@@ -27,9 +27,13 @@ public async Task LancarHorasAsync(HoraLancada horaLancada)
                 );
         }
 
-public async Task<int> SomarHorasPeriodoAsync(int usuarioId, DateTime inicio, DateTime fim)
+        public async Task<int> SomarHorasPeriodoAsync(int usuarioId, DateTime inicio, DateTime fim)
         {
-            return await _contexto.Database.SqlQueryRaw<int>("SELECT fn_somar_horas_periodo({0}, {1}, {2})", usuarioId, inicio.Date, fim.Date).FirstOrDefaultAsync();
+            return await _contexto.Database.SqlQueryRaw<int>(
+                "SELECT fn_somar_horas_periodo({0}, {1}::date, {2}::date)", 
+                usuarioId, 
+                inicio, 
+                fim).FirstOrDefaultAsync();
         }
 
         public async Task<List<HoraLancada>> ListarPeriodoAsync(int usuarioId, DateTime inicio, DateTime fim)

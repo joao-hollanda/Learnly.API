@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Learnly.Domain.Entities;
 
@@ -10,5 +11,7 @@ namespace Learnly.Application.Interfaces
     {
         bool ValidarLogin(Usuario usuario, string senha);
         public string GenerateToken(int id, string email, string nome);
+        string GenerateToken(int id, string email, string nome, TimeSpan expiracao);
+        ClaimsPrincipal? ValidarToken(string token);
     }
 }

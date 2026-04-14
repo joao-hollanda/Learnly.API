@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Learnly.Repository.Migrations
 {
     [DbContext(typeof(LearnlyContexto))]
-    [Migration("20260413125459_Procedures")]
+    [Migration("20260413162638_Procedures")]
     partial class Procedures
     {
         /// <inheritdoc />
