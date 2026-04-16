@@ -94,7 +94,7 @@ namespace Learnly.Application.Applications
                 ValidateIssuer = true,
                 ValidateAudience = true,
                 ValidateIssuerSigningKey = true,
-                ValidateLifetime = false, // aceita refresh token expirado
+                ValidateLifetime = false,
                 ValidIssuer = _configuration["jwt:issuer"],
                 ValidAudience = _configuration["jwt:audience"],
                 IssuerSigningKey = new SymmetricSecurityKey(
