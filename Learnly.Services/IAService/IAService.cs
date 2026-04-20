@@ -144,15 +144,15 @@ Seja direto. Use **negrito** só para o que realmente importa. Sem listas, sem i
 
             int semanas = (int)Math.Ceiling(semanasDouble);
 
-            int totalMaterias = semanas / 6;
+            int totalMaterias = (int)Math.Ceiling(semanasDouble / 2.0);
 
-            totalMaterias = Math.Clamp(totalMaterias, 3, 10);
+            totalMaterias = Math.Clamp(totalMaterias, 5, 15);
 
             var messages = new[]
             {
         new { role = "system", content = $@"- Materias devem ser relevantes para '{plano.Objetivo}'
 - O plano deve ter {totalMaterias} materias
-- Cada matéria 4-6 tópicos
+- Cada matéria 5-8 tópicos
 - Datas 2026
 - JSON válido, apenas o objeto, sem explicações
 - O plano deve ter {horasTotais} horas totais
@@ -182,7 +182,7 @@ Seja direto. Use **negrito** só para o que realmente importa. Sem listas, sem i
                 messages,
                 temperature = 0.2,
                 response_format = new { type = "json_object" },
-                max_tokens = 1500
+                max_tokens = 4000
             };
 
 
