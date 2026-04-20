@@ -10,5 +10,8 @@ namespace Learnly.API.Controllers
             if (string.IsNullOrEmpty(value)) return null;
             return int.TryParse(value, out var id) ? id : null;
         }
+
+        protected OkObjectResult Success(object data = null) =>
+            Ok(new { success = true, data, errors = Array.Empty<string>() });
     }
 }

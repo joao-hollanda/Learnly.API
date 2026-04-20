@@ -1,6 +1,8 @@
 using Learnly.Application.Interfaces;
 using Learnly.Domain.Entities;
 using Learnly.Domain.Entities.Simulados;
+using Learnly.Domain.Exceptions.Simulados;
+using Learnly.Domain.Exceptions.Usuarios;
 using Learnly.Repository.Interfaces;
 using Learnly.Services.Interfaces;
 
@@ -26,7 +28,7 @@ namespace Learnly.Application.Applications
 
             var usuario = await _usuarioRepositorio.Obter(simulado.UsuarioId, true);
             if (usuario == null)
-                throw new Exception("Usuário não encontrado!");
+                throw new UsuarioNaoEncontradoException(simulado.UsuarioId);
 
             var questoes = await _simuladoRepositorio.GerarQuestoesAsync(disciplinas, totalQuestoes);
 
@@ -48,10 +50,10 @@ namespace Learnly.Application.Applications
             var simuladoBanco = await _simuladoRepositorio.Obter(simulado.SimuladoId);
 
             if (simuladoBanco == null)
-                throw new Exception("Simulado não encontrado no banco.");
+                throw new SimuladoNaoEncontradoException(simulado.SimuladoId);
 
             if (simulado.Respostas == null || !simulado.Respostas.Any())
-                throw new Exception("Nenhuma resposta enviada.");
+                throw new RespostasNaoInformadasException();
 
             var desempenho = new DesempenhoSimulado();
 
@@ -61,10 +63,10 @@ namespace Learnly.Application.Applications
                 resposta.Alternativa = await _simuladoRepositorio.ObterAlternativa(resposta.AlternativaId);
 
                 if (resposta.Questao == null)
-                    throw new Exception($"Questão {resposta.QuestaoId} não encontrada.");
+                    throw new QuestaoNaoEncontradaException(resposta.QuestaoId);
 
                 if (resposta.Alternativa == null)
-                    throw new Exception($"Alternativa {resposta.AlternativaId} não encontrada.");
+                    throw new AlternativaNaoEncontradaException(resposta.AlternativaId);
 
                 if (resposta.Questao.AlternativaCorreta == resposta.Alternativa.Letra)
                     resposta.Alternativa.Correta = true;
@@ -122,7 +124,7 @@ namespace Learnly.Application.Applications
             var simuladoDominio = await _simuladoRepositorio.Obter(id);
 
             if (simuladoDominio == null)
-                throw new Exception("Simulado não encontrado!");
+                throw new SimuladoNaoEncontradoException(id);
 
             return simuladoDominio;
         }
@@ -131,7 +133,7 @@ namespace Learnly.Application.Applications
             var usuarioDominio = await _usuarioRepositorio.Obter(id, true);
 
             if (usuarioDominio == null)
-                throw new Exception("Usuário não encontrado");
+                throw new UsuarioNaoEncontradoException();
 
             return await _simuladoRepositorio.Listar5(id);
         }

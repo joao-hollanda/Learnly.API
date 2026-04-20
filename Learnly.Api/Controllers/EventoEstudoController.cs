@@ -26,7 +26,7 @@ namespace Learnly.Api.Controllers
             if (usuarioId == null) return Unauthorized();
 
             var eventos = await _aplicacao.Listar((int)usuarioId);
-            return Ok(eventos);
+            return Success(eventos);
         }
 
         [HttpPost]

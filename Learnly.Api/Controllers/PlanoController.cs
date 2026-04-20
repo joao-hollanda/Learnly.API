@@ -49,7 +49,7 @@ namespace Learnly.API.Controllers
                 planoGerado.UsuarioId = usuarioId.Value;
 
                 await _planoAplicacao.Criar(planoGerado);
-                return Ok(planoGerado);
+                return Success(planoGerado);
             }
 
             var plano = new PlanoEstudo
@@ -64,7 +64,7 @@ namespace Learnly.API.Controllers
             };
 
             await _planoAplicacao.Criar(plano);
-            return Ok(plano);
+            return Success(plano);
         }
 
 
@@ -72,7 +72,7 @@ namespace Learnly.API.Controllers
         public async Task<IActionResult> Obter(int planoId)
         {
             var plano = await _planoAplicacao.Obter(planoId);
-            return Ok(plano);
+            return Success(plano);
         }
 
         [HttpGet()]
@@ -82,7 +82,7 @@ namespace Learnly.API.Controllers
             if (usuarioId != null)
             {
                 var planos = await _planoAplicacao.Listar5((int)usuarioId);
-                return Ok(planos);
+                return Success(planos);
             }
             else
             {
@@ -96,7 +96,7 @@ namespace Learnly.API.Controllers
             var usuarioId = GetUserId();
             if (usuarioId != null)
             {
-                return Ok(await _planoAplicacao.GerarResumo((int)usuarioId));
+                return Success(await _planoAplicacao.GerarResumo((int)usuarioId));
             }
             else
             {
@@ -155,12 +155,7 @@ namespace Learnly.API.Controllers
         public async Task<IActionResult> DesativarPlano(int planoId)
         {
             var plano = await _planoAplicacao.Obter(planoId);
-
-            if (plano == null)
-                return NotFound("Plano não encontrado!");
-
             await _planoAplicacao.DesativarPlano(plano);
-
             return NoContent();
         }
 
@@ -172,7 +167,7 @@ namespace Learnly.API.Controllers
             if (usuarioId != null)
             {
                 var comparacao = await _planoAplicacao.CompararHorasHojeOntem((int)usuarioId);
-                return Ok(comparacao);
+                return Success(comparacao);
             }
             else
             {
@@ -183,18 +178,9 @@ namespace Learnly.API.Controllers
         [HttpDelete("{planoId}")]
         public async Task<IActionResult> Excluir(int planoId)
         {
-            try
-            {
-                var plano = await _planoAplicacao.Obter(planoId);
-
-                await _planoAplicacao.Excluir(plano);
-
-                return NoContent();
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
+            var plano = await _planoAplicacao.Obter(planoId);
+            await _planoAplicacao.Excluir(plano);
+            return NoContent();
         }
 
         [HttpGet("plano-ativo")]
@@ -204,7 +190,7 @@ namespace Learnly.API.Controllers
             if (usuarioId != null)
             {
                 var plano = await _planoAplicacao.ObterPlanoAtivo((int)usuarioId);
-                return Ok(plano);
+                return Success(plano);
             }
             else
             {

@@ -1,6 +1,6 @@
-using System.Threading.Tasks;
 using Learnly.Api.Models.Usuarios.Request;
 using Learnly.Application.Interfaces;
+using Learnly.API.Controllers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -8,7 +8,7 @@ namespace Learnly.Api.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class LoginController : ControllerBase
+    public class LoginController : BaseController
     {
         private readonly IUsuarioAplicacao _usuarioAplicacao;
         private readonly ILoginAplicacao _loginAplicacao;
@@ -19,13 +19,9 @@ namespace Learnly.Api.Controllers
             _usuarioAplicacao = usuarioAplicacao;
         }
 
-        [HttpGet]
-        [Route("AuthCheck")]
+        [HttpGet("AuthCheck")]
         [Authorize]
-        public IActionResult AuthCheck()
-        {
-            return Ok(new { autenticado = true });
-        }
+        public IActionResult AuthCheck() => Success(new { autenticado = true });
 
         [HttpGet("user")]
         [Authorize]
@@ -38,83 +34,66 @@ namespace Learnly.Api.Controllers
             if (string.IsNullOrEmpty(userId))
                 return Unauthorized();
 
-            return Ok(new
+            return Success(new
             {
                 id = int.TryParse(userId, out var id) ? id : 0,
-                email = email,
-                nome = nome
+                email,
+                nome
             });
         }
 
         [HttpPost]
         public async Task<ActionResult> Login([FromBody] Login loginDTO)
         {
-            try
+            var usuario = await _usuarioAplicacao.ObterPorEmail(loginDTO.Email);
+
+            var auth = _loginAplicacao.ValidarLogin(usuario, loginDTO.Senha);
+
+            if (!auth)
+                return Unauthorized("Usuário ou senha inválido");
+
+            var token = _loginAplicacao.GenerateToken(usuario.Id, usuario.Email, usuario.Nome);
+
+            var isProduction = !Request.Host.Host.Contains("localhost");
+
+            var cookieOptions = new CookieOptions
             {
-                var usuario = await _usuarioAplicacao.ObterPorEmail(loginDTO.Email);
+                HttpOnly = true,
+                Secure = isProduction,
+                SameSite = isProduction ? SameSiteMode.None : SameSiteMode.Lax,
+                Expires = DateTime.UtcNow.AddHours(24)
+            };
 
-                if (usuario == null)
-                    return Unauthorized("Usuário não registrado");
+            Response.Cookies.Append("jwt", token, cookieOptions);
 
-                var auth = _loginAplicacao.ValidarLogin(usuario, loginDTO.Senha);
-
-                if (!auth)
-                    return Unauthorized("Usuário ou senha inválido");
-
-                var token = _loginAplicacao.GenerateToken(usuario.Id, usuario.Email, usuario.Nome);
-
-                var isProduction = !Request.Host.Host.Contains("localhost");
-
-                var cookieOptions = new CookieOptions
-                {
-                    HttpOnly = true,
-                    Secure = isProduction,
-                    SameSite = isProduction ? SameSiteMode.None : SameSiteMode.Lax,
-                    Expires = DateTime.UtcNow.AddHours(24)
-                };
-
-                Response.Cookies.Append("jwt", token, cookieOptions);
-
-                return Ok(new { message = "Login realizado com sucesso" });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
+            return Success(new { message = "Login realizado com sucesso" });
         }
 
         [HttpPost("refresh")]
         [Authorize]
         public IActionResult RefreshToken()
         {
-            try
+            var userId = User.FindFirst("id")?.Value;
+            var email = User.FindFirst("email")?.Value;
+            var nome = User.FindFirst("nome")?.Value;
+
+            if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(email) || string.IsNullOrEmpty(nome))
+                return Unauthorized("Token inválido");
+
+            var newToken = _loginAplicacao.GenerateToken(int.Parse(userId), email, nome);
+
+            var isProduction = !Request.Host.Host.Contains("localhost");
+            var cookieOptions = new CookieOptions
             {
-                var userId = User.FindFirst("id")?.Value;
-                var email = User.FindFirst("email")?.Value;
-                var nome = User.FindFirst("nome")?.Value;
+                HttpOnly = true,
+                Secure = isProduction || Request.IsHttps,
+                SameSite = SameSiteMode.None,
+                Expires = DateTime.UtcNow.AddHours(24)
+            };
 
-                if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(email) || string.IsNullOrEmpty(nome))
-                    return Unauthorized("Token inválido");
+            Response.Cookies.Append("jwt", newToken, cookieOptions);
 
-                var newToken = _loginAplicacao.GenerateToken(int.Parse(userId), email, nome);
-
-                var isProduction = !Request.Host.Host.Contains("localhost");
-                var cookieOptions = new CookieOptions
-                {
-                    HttpOnly = true,
-                    Secure = isProduction || Request.IsHttps,
-                    SameSite = SameSiteMode.None,
-                    Expires = DateTime.UtcNow.AddHours(24)
-                };
-
-                Response.Cookies.Append("jwt", newToken, cookieOptions);
-
-                return Ok(new { message = "Token renovado com sucesso" });
-            }
-            catch (Exception ex)
-            {
-                return Unauthorized("Erro ao renovar token");
-            }
+            return Success(new { message = "Token renovado com sucesso" });
         }
 
         [HttpPost("logout")]
@@ -131,13 +110,10 @@ namespace Learnly.Api.Controllers
             };
 
             Response.Cookies.Append("jwt", "", cookieOptions);
-            return Ok(new { message = "Logout realizado com sucesso" });
+            return Success(new { message = "Logout realizado com sucesso" });
         }
 
         [HttpGet("ping")]
-        public IActionResult Ping()
-        {
-            return Ok("pong");
-        }
+        public IActionResult Ping() => Ok("pong");
     }
 }

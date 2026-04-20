@@ -1,4 +1,6 @@
 using System.Text;
+using FluentValidation;
+using FluentValidation.AspNetCore;
 using Learnly.Application.Applications;
 using Learnly.Application.Interfaces;
 using Learnly.Application.Services;
@@ -164,6 +166,12 @@ builder.Services.AddSwaggerGen(c =>
 });
 #endregion
 
+#region Validators
+builder.Services.AddFluentValidationAutoValidation();
+builder.Services.AddValidatorsFromAssemblyContaining<Learnly.Api.Validators.LoginValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<Learnly.Application.Validators.UsuarioValidator>();
+#endregion
+
 #region Controllers e Banco
 builder.Services.AddControllers();
 
@@ -186,6 +194,8 @@ builder.Services.AddDbContext<LearnlyContexto>(options =>
 var app = builder.Build();
 
 #region Pipeline
+app.UseMiddleware<Learnly.Api.Middlewares.ExceptionMiddleware>();
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();

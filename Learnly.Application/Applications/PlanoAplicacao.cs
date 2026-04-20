@@ -1,6 +1,9 @@
+using FluentValidation;
 using Learnly.Application.Interfaces;
 using Learnly.Domain.Entities;
 using Learnly.Domain.Entities.Planos;
+using Learnly.Domain.Exceptions.Planos;
+using Learnly.Domain.Exceptions.Usuarios;
 using Learnly.Repository.Interfaces;
 
 namespace Learnly.Application.Applications
@@ -11,17 +14,20 @@ namespace Learnly.Application.Applications
         readonly IUsuarioRepositorio _usuarioRepositorio;
         readonly IMateriaRepositorio _materiaRepositorio;
         readonly IHoraLancadaRepositorio _horaLancadaRepositorio;
+        readonly IValidator<PlanoEstudo> _validator;
 
         public PlanoAplicacao(
             IPlanoRepositorio planoRepositorio,
             IUsuarioRepositorio usuarioRepositorio,
             IMateriaRepositorio materiaRepositorio,
-            IHoraLancadaRepositorio horaLancadaRepositorio)
+            IHoraLancadaRepositorio horaLancadaRepositorio,
+            IValidator<PlanoEstudo> validator)
         {
             _planoRepositorio = planoRepositorio;
             _usuarioRepositorio = usuarioRepositorio;
             _materiaRepositorio = materiaRepositorio;
             _horaLancadaRepositorio = horaLancadaRepositorio;
+            _validator = validator;
         }
 
         public async Task Criar(PlanoEstudo plano)
@@ -29,15 +35,13 @@ namespace Learnly.Application.Applications
             if (plano == null)
                 throw new ArgumentNullException(nameof(plano));
 
-            if (string.IsNullOrWhiteSpace(plano.Titulo) ||
-                string.IsNullOrWhiteSpace(plano.Objetivo))
-                throw new InvalidOperationException("É necessário ter um título e um objetivo!");
+            await _validator.ValidateAndThrowAsync(plano);
 
             var totalPlanosUsuario =
                 await _planoRepositorio.ContarPorUsuario(plano.UsuarioId);
 
             if (totalPlanosUsuario >= 5)
-                throw new InvalidOperationException("Limite máximo de 5 planos atingido.");
+                throw new LimitePlanosAtingidoException();
 
             plano.PlanoMaterias ??= new List<PlanoMateria>();
 
@@ -79,7 +83,7 @@ namespace Learnly.Application.Applications
             var plano = await _planoRepositorio.ObterPlanoPorId(planoId);
 
             if (plano == null)
-                throw new Exception("Plano não encontrado");
+                throw new PlanoNaoEncontradoException(planoId);
 
             return plano;
         }
@@ -103,12 +107,12 @@ namespace Learnly.Application.Applications
             var planos = await _planoRepositorio.ListarPorUsuario(usuarioId);
 
             if (!planos.Any())
-                throw new Exception("Usuário não possui planos");
+                throw new PlanoNaoEncontradoException();
 
             var planoSelecionado = planos.FirstOrDefault(p => p.PlanoId == planoId);
 
             if (planoSelecionado == null)
-                throw new Exception("Plano não encontrado");
+                throw new PlanoNaoEncontradoException(planoId);
 
             foreach (var plano in planos)
                 plano.Ativo = false;
@@ -124,15 +128,15 @@ namespace Learnly.Application.Applications
             var plano = await _planoRepositorio.Obter(planoId);
 
             if (plano == null)
-                throw new Exception("Plano não encontrado");
+                throw new PlanoNaoEncontradoException(planoId);
 
             var materia = await _materiaRepositorio.Obter(materiaId);
 
             if (materia == null)
-                throw new Exception("Matéria não encontrada");
+                throw new MateriaNaoEncontradaException(materiaId);
 
             if (plano.PlanoMaterias.Any(pm => pm.MateriaId == materiaId))
-                throw new Exception("Matéria já adicionada ao plano");
+                throw new MateriaJaAdicionadaException();
 
             plano.PlanoMaterias.Add(new PlanoMateria
             {
@@ -147,16 +151,16 @@ namespace Learnly.Application.Applications
         public async Task LancarHoras(int planoMateriaId, int horas)
         {
             if (horas <= 0)
-                throw new Exception("Horas deve ser maior que zero.");
+                throw new ArgumentException("Horas deve ser maior que zero.");
 
             var planoMateria = await _planoRepositorio.ObterPlanoMateriaPorId(planoMateriaId)
-                ?? throw new Exception("Matéria do plano não encontrada.");
+                ?? throw new MateriaDoPlanoNaoEncontradaException(planoMateriaId);
 
             var horasRestantes =
                 planoMateria.HorasTotais - planoMateria.HorasConcluidas;
 
             if (horas > horasRestantes)
-                throw new Exception("Horas excedem o total planejado.");
+                throw new HorasExcedemTotalException(horasRestantes);
 
             planoMateria.HorasConcluidas += horas;
 
@@ -177,7 +181,7 @@ namespace Learnly.Application.Applications
             var usuarioDominio = await _usuarioRepositorio.Obter(usuarioId, true);
 
             if (usuarioDominio == null)
-                throw new Exception("Usuário não encontrado!");
+                throw new UsuarioNaoEncontradoException(usuarioId);
 
             return await _planoRepositorio.GerarResumoGeral(usuarioId);
         }
@@ -193,7 +197,7 @@ namespace Learnly.Application.Applications
             var usuario = await _usuarioRepositorio.Obter(usuarioId, true);
 
             if (usuario == null)
-                throw new Exception("Usuário não encontrado");
+                throw new UsuarioNaoEncontradoException(usuarioId);
 
             var hoje = DateTime.UtcNow.Date;
             var ontem = hoje.AddDays(-1);
