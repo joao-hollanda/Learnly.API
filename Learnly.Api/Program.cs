@@ -144,6 +144,8 @@ builder.Services.AddControllers();
 var app = builder.Build();
 
 #region Pipeline
+app.UseCors("AllowReact");
+
 app.UseMiddleware<Learnly.Api.Middlewares.ExceptionMiddleware>();
 
 if (app.Environment.IsDevelopment())
@@ -153,8 +155,6 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
-app.UseCors("AllowReact");
 
 app.UseAuthentication();
 app.UseAuthorization();
