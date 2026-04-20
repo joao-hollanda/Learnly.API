@@ -10,7 +10,6 @@ namespace Learnly.Repository.Config
         {
             builder.ToTable("RespostasSimulado");
 
-            // Chave primária
             builder.HasKey(r => r.RespostaId);
 
             builder.Property(r => r.Explicacao)

@@ -60,7 +60,6 @@ namespace Learnly.API.Controllers
                 DataInicio = DateTime.SpecifyKind(dto.DataInicio, DateTimeKind.Utc),
                 DataFim = DateTime.SpecifyKind(dto.DataFim, DateTimeKind.Utc),
                 HorasPorSemana = 0,
-                Ativo = false
             };
 
             await _planoAplicacao.Criar(plano);
@@ -72,6 +71,9 @@ namespace Learnly.API.Controllers
         public async Task<IActionResult> Obter(int planoId)
         {
             var plano = await _planoAplicacao.Obter(planoId);
+            if (plano.UsuarioId != GetUserId())
+                return Forbid();
+
             return Ok(plano);
         }
 
@@ -108,6 +110,7 @@ namespace Learnly.API.Controllers
         [HttpPut]
         public async Task<IActionResult> Atualizar([FromBody] PlanoEstudo plano)
         {
+            if (plano.UsuarioId != GetUserId()) return Forbid();
             await _planoAplicacao.Atualizar(plano);
             return NoContent();
         }
@@ -132,6 +135,10 @@ namespace Learnly.API.Controllers
             int planoId,
             [FromBody] AdicionarPlanoMateriaDTO dto)
         {
+            var plano = await _planoAplicacao.Obter(planoId);
+
+            if (plano.UsuarioId != GetUserId()) return Forbid();
+
             await _planoAplicacao.AdicionarMateria(
                 planoId,
                 dto.MateriaId,
@@ -155,6 +162,8 @@ namespace Learnly.API.Controllers
         public async Task<IActionResult> DesativarPlano(int planoId)
         {
             var plano = await _planoAplicacao.Obter(planoId);
+
+            if (plano.UsuarioId != GetUserId()) return Forbid();
 
             if (plano == null)
                 return NotFound("Plano não encontrado!");
@@ -187,13 +196,15 @@ namespace Learnly.API.Controllers
             {
                 var plano = await _planoAplicacao.Obter(planoId);
 
+                if (plano.UsuarioId != GetUserId()) return Forbid();
+
                 await _planoAplicacao.Excluir(plano);
 
                 return NoContent();
             }
-            catch (Exception ex)
+            catch
             {
-                return BadRequest(ex.Message);
+                return BadRequest("Houve um erro ao fazer a requisição");
             }
         }
 

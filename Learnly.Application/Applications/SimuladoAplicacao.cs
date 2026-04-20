@@ -24,10 +24,6 @@ namespace Learnly.Application.Applications
             if (simulado == null)
                 throw new ArgumentException("Simulado não pode ser nulo.");
 
-            var usuario = await _usuarioRepositorio.Obter(simulado.UsuarioId, true);
-            if (usuario == null)
-                throw new Exception("Usuário não encontrado!");
-
             var questoes = await _simuladoRepositorio.GerarQuestoesAsync(disciplinas, totalQuestoes);
 
             var simuladoQuestoes = questoes.Select(q => new SimuladoQuestao

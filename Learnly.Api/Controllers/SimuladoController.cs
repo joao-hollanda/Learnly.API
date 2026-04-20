@@ -43,9 +43,9 @@ namespace Learnly.Api.Controllers
 
                 return Ok(simuladoId);
             }
-            catch (Exception ex)
+            catch
             {
-                return BadRequest(ex.Message);
+                return BadRequest("Houve um erro ao fazer a requisição");
             }
         }
 
@@ -84,10 +84,9 @@ namespace Learnly.Api.Controllers
 
                 return Ok(simuladoResposta);
             }
-            catch (Exception ex)
+            catch 
             {
-                Console.WriteLine(ex);
-                return BadRequest(ex.Message);
+                return BadRequest("Houve um erro ao fazer a requisição");
             }
         }
 
@@ -140,9 +139,9 @@ namespace Learnly.Api.Controllers
                 return Ok(dto);
 
             }
-            catch (Exception ex)
+            catch
             {
-                return BadRequest(ex.Message);
+                return BadRequest("Houve um erro ao fazer a requisição");
             }
         }
 
@@ -203,9 +202,9 @@ namespace Learnly.Api.Controllers
                     return Forbid();
                 }
             }
-            catch (Exception ex)
+            catch 
             {
-                return BadRequest(ex.Message);
+                return BadRequest("Houve um erro ao fazer a requisição");
             }
         }
 
@@ -225,9 +224,9 @@ namespace Learnly.Api.Controllers
                     return Forbid();
                 }
             }
-            catch (Exception ex)
+            catch
             {
-                return BadRequest(ex.Message);
+                return BadRequest("Houve um erro ao fazer a requisição");
             }
         }
     }

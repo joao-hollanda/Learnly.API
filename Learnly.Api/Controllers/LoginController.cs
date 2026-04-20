@@ -77,9 +77,9 @@ namespace Learnly.Api.Controllers
 
                 return Ok(new { message = "Login realizado com sucesso" });
             }
-            catch (Exception ex)
+            catch
             {
-                return BadRequest(ex.Message);
+                return BadRequest("Houve um erro ao fazer a requisição");
             }
         }
 
@@ -111,7 +111,62 @@ namespace Learnly.Api.Controllers
 
                 return Ok(new { message = "Token renovado com sucesso" });
             }
-            catch (Exception ex)
+            catch
+            {
+                return Unauthorized("Erro ao renovar token");
+            }
+        }
+
+        [HttpPost("mobile")]
+        public async Task<ActionResult> LoginMobile([FromBody] Login loginDTO)
+        {
+            try
+            {
+                var usuario = await _usuarioAplicacao.ObterPorEmail(loginDTO.Email);
+                if (usuario == null) return Unauthorized("Usuário não registrado");
+
+                var auth = _loginAplicacao.ValidarLogin(usuario, loginDTO.Senha);
+                if (!auth) return Unauthorized("Usuário ou senha inválido");
+
+                var accessToken = _loginAplicacao.GenerateToken(
+                    usuario.Id, usuario.Email, usuario.Nome, TimeSpan.FromHours(1)
+                );
+                var refreshToken = _loginAplicacao.GenerateToken(
+                    usuario.Id, usuario.Email, usuario.Nome, TimeSpan.FromDays(30)
+                );
+
+                return Ok(new { accessToken, refreshToken });
+            }
+            catch
+            {
+                return BadRequest("Houve um erro ao fazer a requisição");
+            }
+        }
+
+        [HttpPost("mobile/refresh")]
+        public IActionResult RefreshTokenMobile([FromBody] RefreshTokenRequest body)
+        {
+            try
+            {
+                var principal = _loginAplicacao.ValidarToken(body.RefreshToken);
+                if (principal == null) return Unauthorized("Refresh token inválido");
+
+                var userId = principal.FindFirst("id")?.Value;
+                var email = principal.FindFirst("email")?.Value;
+                var nome = principal.FindFirst("nome")?.Value;
+
+                if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+                var newAccessToken = _loginAplicacao.GenerateToken(
+                    int.Parse(userId), email, nome, TimeSpan.FromHours(1)
+                );
+                var newRefreshToken = _loginAplicacao.GenerateToken(
+                    int.Parse(userId), email, nome, TimeSpan.FromDays(30)
+                );
+
+                return Ok(new { accessToken = newAccessToken, refreshToken = newRefreshToken });
+            }
+            catch
             {
                 return Unauthorized("Erro ao renovar token");
             }

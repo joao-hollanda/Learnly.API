@@ -1,165 +1,229 @@
 # Learnly API
 
-Backend da aplicação **Learnly**, uma plataforma educacional voltada ao gerenciamento inteligente de estudos, eventos acadêmicos, disciplinas e progresso do aluno.
+Backend da plataforma **Learnly** — preparatório inteligente para o ENEM com planos de estudo, simulados com correção automática e feedback gerado por IA.
 
 ---
 
 ## Visão Geral
 
-A **Learnly API** foi desenvolvida em **ASP.NET Core**, seguindo uma arquitetura em camadas e princípios de boas práticas de engenharia de software.
+A Learnly API é construída em **ASP.NET Core (.NET 8)** seguindo **Clean Architecture** com separação clara entre as camadas de API, Application, Domain, Repository e Services. Toda a comunicação com o banco é feita via **Entity Framework Core** com **PostgreSQL** (hospedado no Neon).
 
-A API centraliza toda a lógica de negócio da plataforma, garantindo organização, escalabilidade e manutenibilidade do sistema.
+O backend centraliza:
 
-Principais responsabilidades:
-
-* Gerenciamento de usuários
-* Criação e organização de planos de estudo
-* Controle de eventos e horários
-* Geração de simulados no padrão ENEM
-* Monitoramento de progresso do aluno
+- Autenticação via **JWT com HttpOnly Cookie**
+- Gerenciamento de usuários, planos de estudo e eventos
+- Geração e correção de simulados no padrão ENEM
+- Feedback e explicações de erros gerados via **Groq API** (LLaMA 3)
+- Chatbot educacional com contexto de mentor
 
 ---
 
-## Tecnologias Utilizadas
+## Stack
 
-* .NET / ASP.NET Core Web API
-* C#
-* Entity Framework Core
-* SQL Server
-* Arquitetura em camadas
+| Camada | Tecnologia |
+|---|---|
+| Runtime | .NET 8 / ASP.NET Core |
+| Linguagem | C# |
+| ORM | Entity Framework Core 8 |
+| Banco | PostgreSQL (Neon) |
+| IA | Groq API — `llama-3.1-8b-instant`, `llama-3.3-70b-versatile` |
+| Auth | JWT Bearer + HttpOnly Cookie |
+| Container | Docker |
 
 ---
 
 ## Estrutura do Projeto
 
-```text
-Learnly.API
-│
-├── Learnly.Api          # Controllers, Program.cs e configurações da API
-├── Learnly.Application # DTOs, casos de uso e regras de aplicação
-├── Learnly.Domain      # Entidades e regras de domínio
-├── Learnly.Repository  # Persistência e configuração do EF Core
-├── Learnly.Services    # Serviços de negócio
-├── Seeder              # Popular banco com dados iniciais
-└── Learnly.sln         # Solução principal
+```
+Learnly.API/
+├── Learnly.Api/           # Controllers, Program.cs, modelos de request/response
+├── Learnly.Application/   # Casos de uso (Aplicações) e interfaces
+├── Learnly.Domain/        # Entidades, enums e DTOs de domínio
+├── Learnly.Repository/    # DbContext, configs EF Core, migrations, repositórios
+├── Learnly.Services/      # Serviços externos (Groq IA)
+├── Seeder/                # Seed de questões via API pública do ENEM
+└── Learnly.sln
 ```
 
 ---
 
 ## Pré-requisitos
 
-Antes de iniciar, certifique-se de possuir:
-
-* .NET SDK (versão compatível com o projeto)
-* SQL Server (ou outro banco configurado)
-* Git
+- [.NET SDK 8.0.417](https://dotnet.microsoft.com/download)
+- PostgreSQL ou string de conexão Neon
+- Chave de API da [Groq](https://console.groq.com)
+- Docker (opcional)
 
 ---
 
-## Configuração do Ambiente
+## Configuração
 
-### Clonar o repositório
+### 1. Clone o repositório
 
 ```bash
 git clone https://github.com/joao-hollanda/Learnly.API
 cd Learnly.API
 ```
 
----
+### 2. Configure o `appsettings.json`
 
-### Configurar o banco de dados
-
-Edite o arquivo:
-
-`Learnly.Api/appsettings.json`
-
-Exemplo:
+Crie o arquivo `Learnly.Api/appsettings.json` (ignorado pelo `.gitignore`):
 
 ```json
-"ConnectionStrings": {
-  "DefaultConnection": "Server=localhost;Database=LearnlyDB;Trusted_Connection=True;"
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Host=...;Database=learnly;Username=...;Password=..."
+  },
+  "jwt": {
+    "secretKey": "sua-chave-secreta-aqui",
+    "issuer": "learnly-api",
+    "audience": "learnly-frontend"
+  },
+  "ApiKeys": {
+    "GroqIA": "gsk_..."
+  }
 }
 ```
 
----
-
-### Restaurar dependências
+### 3. Restaure as dependências
 
 ```bash
 dotnet restore
 ```
 
----
-
-## Migrations e Banco de Dados
-
-Para criar o banco e aplicar as migrations:
+### 4. Aplique as migrations
 
 ```bash
-dotnet ef database update
+dotnet ef database update --project Learnly.Repository --startup-project Learnly.Api
 ```
 
----
-
-## Seeder (Dados Iniciais)
-
-O projeto possui um seeder para popular o banco com dados iniciais, facilitando testes e desenvolvimento.
-
----
-
-## Executando a API
+### 5. Execute a API
 
 ```bash
 dotnet run --project Learnly.Api
 ```
 
-Endereços padrão:
+Swagger disponível em: `http://localhost:5080/swagger`
 
+---
+
+## Seed de Questões
+
+O projeto inclui um seeder que importa questões do ENEM (2009–2023) via [enem.dev](https://api.enem.dev):
+
+```bash
+dotnet run --project Seeder
 ```
-https://localhost:5001
-http://localhost:5000
+
+> O seeder aplica as migrations automaticamente antes de importar os dados. Só executa se o banco estiver vazio.
+
+---
+
+## Docker
+
+```bash
+docker build -t learnly-api .
+docker run -p 8080:8080 \
+  -e ConnectionStrings__DefaultConnection="..." \
+  -e jwt__secretKey="..." \
+  -e ApiKeys__GroqIA="..." \
+  learnly-api
 ```
 
 ---
 
-## Documentação da API
+## Endpoints Principais
 
-Se o Swagger estiver habilitado:
+### Autenticação
+| Método | Rota | Descrição |
+|---|---|---|
+| `POST` | `/api/login` | Login — seta cookie JWT |
+| `POST` | `/api/login/refresh` | Renova o token |
+| `POST` | `/api/login/logout` | Invalida o cookie |
+| `GET` | `/api/login/AuthCheck` | Verifica autenticação |
+| `GET` | `/api/login/user` | Retorna dados do usuário logado |
+
+### Usuários
+| Método | Rota | Descrição |
+|---|---|---|
+| `POST` | `/api/usuarios/criar` | Cadastro (público) |
+| `PUT` | `/api/usuarios` | Atualiza nome/email |
+| `DELETE` | `/api/usuarios/desativar/{id}` | Desativa conta |
+
+### Planos de Estudo
+| Método | Rota | Descrição |
+|---|---|---|
+| `POST` | `/api/plano` | Cria plano (manual ou gerado por IA) |
+| `GET` | `/api/plano` | Lista últimos 5 planos |
+| `GET` | `/api/plano/{id}` | Busca plano por ID |
+| `PUT` | `/api/plano/{id}/ativar` | Ativa um plano |
+| `PUT` | `/api/plano/{id}/desativar` | Desativa um plano |
+| `DELETE` | `/api/plano/{id}` | Remove plano |
+| `POST` | `/api/plano/{id}/materia` | Adiciona matéria ao plano |
+| `PUT` | `/api/plano/lancar-horas` | Lança horas estudadas |
+| `GET` | `/api/plano/gerar-resumo` | Resumo de horas totais/concluídas |
+| `GET` | `/api/plano/horas/comparacao` | Compara horas hoje vs ontem |
+| `GET` | `/api/plano/plano-ativo` | Retorna plano ativo do usuário |
+
+### Simulados
+| Método | Rota | Descrição |
+|---|---|---|
+| `POST` | `/api/simulado` | Gera novo simulado |
+| `PUT` | `/api/simulado/responder/{id}` | Responde e corrige o simulado |
+| `GET` | `/api/simulado/{id}` | Busca simulado com questões e respostas |
+| `GET` | `/api/simulado/listar` | Lista últimos 5 simulados |
+| `GET` | `/api/simulado/contar` | Total de simulados realizados |
+
+### Eventos de Estudo
+| Método | Rota | Descrição |
+|---|---|---|
+| `GET` | `/api/eventos` | Lista eventos do usuário |
+| `POST` | `/api/eventos` | Cria evento |
+| `POST` | `/api/eventos/lote` | Cria múltiplos eventos de uma vez |
+| `DELETE` | `/api/eventos` | Remove todos os eventos do usuário |
+
+### IA
+| Método | Rota | Descrição |
+|---|---|---|
+| `POST` | `/api/ia/chat` | Chatbot educacional (mentor ENEM) |
+
+---
+
+## Fluxo do Simulado com IA
 
 ```
-https://localhost:5001/swagger
+POST /api/simulado
+  → Seleciona questões aleatórias por disciplina
+
+PUT /api/simulado/responder/{id}
+  → Corrige respostas
+  → Gera feedback geral (GerarFeedbackAsync)
+  → Gera explicações por questão errada (GerarExplicacoes)
+  → Persiste tudo no banco
+  → Retorna nota + desempenho
 ```
 
----
-
-## Funcionalidades Principais
-
-* Cadastro e autenticação de usuários
-* Criação e gerenciamento de planos de estudo
-* Organização de eventos e horários
-* Simulados no padrão ENEM com correção automática
-* Feedback assistido por IA
-* Controle de progresso acadêmico
-* Chatbot educacional
+As explicações são geradas em uma única chamada à Groq API com todas as questões erradas, evitando rate limiting.
 
 ---
 
-## Arquitetura e Padrões
+## Segurança
 
-* Arquitetura em camadas
-* Separação clara de responsabilidades
-* Domínio isolado da infraestrutura
-* Serviços desacoplados
-* Preparado para testes automatizados
+- `userId` extraído sempre do JWT via `BaseController.GetUserId()` — nunca da rota
+- Verificação de ownership em todos os endpoints que acessam recursos por ID (`PlanoId`, `SimuladoId`)
+- Cookies JWT configurados como `HttpOnly`, `Secure` em produção, `SameSite=None` para cross-origin com o frontend no Vercel
+- Token expirado limpa o cookie automaticamente via evento `OnAuthenticationFailed`
 
 ---
 
-## Testes
+## CORS
 
-Projeto de testes ainda não incluído — seção reservada para evolução futura.
+Configurado para aceitar requisições de:
+- `https://learnly-edu.vercel.app` (produção)
+- `http://localhost:3000` (desenvolvimento)
 
 ---
 
 ## Autor
 
-**João Victor Hollanda** - Desenvolvedor Full Stack em formação
+**João Victor Hollanda** — [github.com/joao-hollanda](https://github.com/joao-hollanda)
