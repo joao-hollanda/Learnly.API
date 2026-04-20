@@ -146,7 +146,7 @@ Seja direto. Use **negrito** só para o que realmente importa. Sem listas, sem i
 
             int totalMaterias = (int)Math.Ceiling(semanasDouble / 2.0);
 
-            totalMaterias = Math.Clamp(totalMaterias, 5, 15);
+            totalMaterias = Math.Clamp(totalMaterias, 4, 8);
 
             var messages = new[]
             {
