@@ -1,4 +1,5 @@
 using FluentValidation;
+using Learnly.Application.DTOs;
 
 namespace Learnly.Application.Validators
 {

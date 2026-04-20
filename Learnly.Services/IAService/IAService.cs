@@ -133,7 +133,7 @@ Seja direto. Use **negrito** só para o que realmente importa. Sem listas, sem i
             return resumo;
         }
 
-        public async Task<PlanoEstudo> GerarPlanoIA(CriarPlanoIADTO plano)
+        public async Task<PlanoEstudo> GerarPlanoIA(PlanoEstudo plano)
         {
 
             int dias = (int)(plano.DataFim - plano.DataInicio).TotalDays;

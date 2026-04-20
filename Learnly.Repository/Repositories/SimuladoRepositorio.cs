@@ -62,7 +62,7 @@ namespace Learnly.Repository.Repositories
 
                 var questoes = await _context.Questoes
                     .Where(q => q.Disciplina == disciplina)
-                    .OrderBy(q => Guid.NewGuid())
+                    .OrderBy(q => EF.Functions.Random())
                     .Take(limite)
                     .Include(q => q.Alternativas)
                     .ToListAsync();
@@ -111,17 +111,6 @@ namespace Learnly.Repository.Repositories
 
         public async Task ResponderSimulado(Simulado simulado)
         {
-            int total = simulado.Questoes.Count;
-            int acertos = 0;
-
-            foreach (var resposta in simulado.Respostas)
-            {
-                if (resposta.Alternativa.Letra == resposta.Questao.AlternativaCorreta)
-                    acertos++;
-            }
-
-            simulado.NotaFinal = Math.Round((decimal)acertos / total * 10, 2);
-
             _context.Simulados.Update(simulado);
             await _context.RespostasSimulado.AddRangeAsync(simulado.Respostas);
             await _context.SaveChangesAsync();

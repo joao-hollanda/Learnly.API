@@ -49,20 +49,16 @@ namespace Learnly.Repository
             await _contexto.SaveChangesAsync();
         }
 
-        public async Task<ResumoGeralDto?> GerarResumoGeral(int usuarioId)
+        public async Task<(int HorasTotais, int HorasConcluidas)> GerarResumoGeral(int usuarioId)
         {
-            var resumo = await _contexto.PlanosEstudo
+            var query = _contexto.PlanosEstudo
                 .Where(p => p.UsuarioId == usuarioId)
-                .SelectMany(p => p.PlanoMaterias)
-                .GroupBy(_ => 1)
-                .Select(g => new ResumoGeralDto
-                {
-                    HorasTotais = g.Sum(x => x.HorasTotais),
-                    HorasConcluidas = g.Sum(x => x.HorasConcluidas)
-                })
-                .FirstOrDefaultAsync();
+                .SelectMany(p => p.PlanoMaterias);
 
-            return resumo;
+            var horasTotais = await query.SumAsync(pm => pm.HorasTotais);
+            var horasConcluidas = await query.SumAsync(pm => pm.HorasConcluidas);
+
+            return (horasTotais, horasConcluidas);
         }
 
         public async Task<List<PlanoEstudo>> ListarPorUsuario(int usuarioId)

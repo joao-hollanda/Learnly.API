@@ -26,31 +26,30 @@ namespace Learnly.Api.Controllers
             var usuarioId = GetUserId();
             if (usuarioId == null) return Forbid();
 
-            var simuladoDominio = new Simulado
+            var simulado = new Simulado
             {
-                UsuarioId = (int)usuarioId,
+                UsuarioId = usuarioId.Value,
                 Data = DateTime.UtcNow
             };
 
-            var simuladoId = await _simuladoAplicacao.GerarSimulado(simuladoDominio, dto.Disciplinas, dto.QuantidadeQuestoes);
-
+            var simuladoId = await _simuladoAplicacao.GerarSimulado(simulado, dto.Disciplinas, dto.QuantidadeQuestoes);
             return Success(simuladoId);
         }
 
         [HttpPut("Responder/{simuladoId}")]
-        public async Task<IActionResult> ResponderSimulado([FromRoute] int simuladoId, [FromBody] List<RespostaRequest> respostasSimulado)
+        public async Task<IActionResult> ResponderSimulado([FromRoute] int simuladoId, [FromBody] List<RespostaRequest> respostasDto)
         {
-            var respostas = respostasSimulado.Select(r => new RespostaSimulado
+            var usuarioId = GetUserId();
+            if (usuarioId == null) return Forbid();
+
+            var respostas = respostasDto.Select(r => new RespostaSimulado
             {
                 SimuladoId = simuladoId,
                 QuestaoId = r.QuestaoId,
                 AlternativaId = r.AlternativaId
             }).ToList();
 
-            var simuladoDominio = await _simuladoAplicacao.Obter(simuladoId);
-            simuladoDominio.Respostas = respostas;
-
-            var simulado = await _simuladoAplicacao.ResponderSimulado(simuladoDominio);
+            var simulado = await _simuladoAplicacao.ResponderSimulado(simuladoId, respostas, usuarioId.Value);
 
             return Success(new SimuladoCorrigido
             {
@@ -62,10 +61,10 @@ namespace Learnly.Api.Controllers
         [HttpGet("{simuladoId}")]
         public async Task<IActionResult> ObterSimulado([FromRoute] int simuladoId)
         {
-            var simulado = await _simuladoAplicacao.Obter(simuladoId);
+            var usuarioId = GetUserId();
+            if (usuarioId == null) return Forbid();
 
-            if (simulado.UsuarioId != GetUserId())
-                return Forbid("Este simulado pertence a outro usuário!");
+            var simulado = await _simuladoAplicacao.Obter(simuladoId, usuarioId.Value);
 
             return Success(new SimuladoObter
             {
@@ -106,7 +105,7 @@ namespace Learnly.Api.Controllers
             var usuarioId = GetUserId();
             if (usuarioId == null) return Forbid();
 
-            var simulados = await _simuladoAplicacao.Listar5((int)usuarioId);
+            var simulados = await _simuladoAplicacao.Listar5(usuarioId.Value);
 
             return Success(simulados.Select(simulado => new SimuladoObter
             {
@@ -147,7 +146,7 @@ namespace Learnly.Api.Controllers
             var usuarioId = GetUserId();
             if (usuarioId == null) return Forbid();
 
-            return Success(await _simuladoAplicacao.Contar((int)usuarioId));
+            return Success(await _simuladoAplicacao.Contar(usuarioId.Value));
         }
     }
 }

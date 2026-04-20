@@ -12,7 +12,7 @@ namespace Learnly.Services.Interfaces
     {
         Task<string> GerarFeedbackAsync(Simulado simulado);
         Task<string> Chatbot(List<Message> mensagens);
-        Task<PlanoEstudo> GerarPlanoIA(CriarPlanoIADTO plano);
+        Task<PlanoEstudo> GerarPlanoIA(PlanoEstudo plano);
         Task<List<ExplicacaoQuestao>> GerarExplicacoes(
             List<SimuladoQuestao> questoesErradas,
             Dictionary<int, RespostaSimulado> respostas);

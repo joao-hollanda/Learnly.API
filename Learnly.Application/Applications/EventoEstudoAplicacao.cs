@@ -2,9 +2,9 @@ using FluentValidation;
 using Learnly.Application.DTOs;
 using Learnly.Application.Interfaces;
 using Learnly.Domain.Entities;
-using Learnly.Domain.Interfaces.Repositories;
+using Learnly.Repository.Interfaces;
 
-namespace Learnly.Application.Services
+namespace Learnly.Application.Applications
 {
     public class EventoEstudoAplicacao : IEventoEstudoAplicacao
     {

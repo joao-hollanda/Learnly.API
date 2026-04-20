@@ -73,6 +73,7 @@ namespace Learnly.Api.Middlewares
                 HorasExcedemTotalException e      => (HttpStatusCode.BadRequest,          e.Message),
 
                 SimuladoNaoEncontradoException e  => (HttpStatusCode.NotFound,            e.Message),
+                SimuladoNaoAutorizadoException e  => (HttpStatusCode.Forbidden,           e.Message),
                 RespostasNaoInformadasException e => (HttpStatusCode.BadRequest,          e.Message),
                 QuestaoNaoEncontradaException e   => (HttpStatusCode.NotFound,            e.Message),
                 AlternativaNaoEncontradaException e => (HttpStatusCode.NotFound,          e.Message),

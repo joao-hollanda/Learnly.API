@@ -1,51 +1,16 @@
 using System.Text;
 using FluentValidation;
 using FluentValidation.AspNetCore;
-using Learnly.Application.Applications;
-using Learnly.Application.Interfaces;
-using Learnly.Application.Services;
-using Learnly.Domain.Interfaces.Repositories;
-using Learnly.Infra.Data.Repositories;
-using Learnly.Repository;
-using Learnly.Repository.Interfaces;
-using Learnly.Repository.Repositories;
-using Learnly.Services.IAService;
-using Learnly.Services.Interfaces;
+using Learnly.Application.Extensions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
-#region Aplicações
-builder.Services.AddScoped<ILoginAplicacao, LoginAplicacao>();
-builder.Services.AddScoped<IUsuarioAplicacao, UsuarioAplicacao>();
-builder.Services.AddScoped<ISimuladoAplicacao, SimuladoAplicacao>();
-builder.Services.AddScoped<IPlanoAplicacao, PlanoAplicacao>();
-builder.Services.AddScoped<IMateriaAplicacao, MateriaAplicacao>();
-builder.Services.AddScoped<IEventoEstudoAplicacao, EventoEstudoAplicacao>();
-
-#endregion
-
-#region Serviços
-
-builder.Services.AddScoped<IIAService>(sp =>
-{
-    var config = sp.GetRequiredService<IConfiguration>();
-    var apiKey = config["ApiKeys:GroqIA"];
-    return new IAService(apiKey);
-});
-#endregion
-
-#region Repositórios
-builder.Services.AddScoped<IUsuarioRepositorio, UsuarioRepositorio>();
-builder.Services.AddScoped<ISimuladoRepositorio, SimuladoRepositorio>();
-builder.Services.AddScoped<IPlanoRepositorio, PlanoRepositorio>();
-builder.Services.AddScoped<IMateriaRepositorio, MateriaRepositorio>();
-builder.Services.AddScoped<IHoraLancadaRepositorio, HoraLancadaRepositorio>();
-builder.Services.AddScoped<IEventoEstudoRepositorio, EventoEstudoRepositorio>();
-
+#region Aplicações + Repositórios
+builder.Services.AddApplicationServices(builder.Configuration);
+builder.Services.AddInfrastructure(builder.Configuration);
 #endregion
 
 #region CORS
@@ -172,23 +137,8 @@ builder.Services.AddValidatorsFromAssemblyContaining<Learnly.Api.Validators.Logi
 builder.Services.AddValidatorsFromAssemblyContaining<Learnly.Application.Validators.UsuarioValidator>();
 #endregion
 
-#region Controllers e Banco
+#region Controllers
 builder.Services.AddControllers();
-
-builder.Services.AddDbContext<LearnlyContexto>(options =>
-    options.UseNpgsql(
-        builder.Configuration.GetConnectionString("DefaultConnection"),
-        npgsql =>
-        {
-            npgsql.EnableRetryOnFailure(
-                maxRetryCount: 5,
-                maxRetryDelay: TimeSpan.FromSeconds(10),
-                errorCodesToAdd: null
-            );
-        }
-    )
-);
-
 #endregion
 
 var app = builder.Build();
