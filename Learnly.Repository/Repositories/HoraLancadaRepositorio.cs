@@ -30,9 +30,9 @@ namespace Learnly.Repository
         public async Task<int> SomarHorasPeriodoAsync(int usuarioId, DateTime inicio, DateTime fim)
         {
             return await _contexto.Database.SqlQueryRaw<int>(
-                "SELECT fn_somar_horas_periodo({0}, {1}::date, {2}::date)", 
-                usuarioId, 
-                inicio, 
+                "SELECT fn_somar_horas_periodo({0}, {1}::date, {2}::date) AS \"Value\"",
+                usuarioId,
+                inicio,
                 fim).FirstOrDefaultAsync();
         }
 
