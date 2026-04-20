@@ -1,4 +1,5 @@
 using Learnly.Services.Interfaces;
+using Learnly.API.Controllers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using consumindoIA.Domain;
@@ -8,7 +9,7 @@ namespace Learnly.Api.Controllers
     [ApiController]
     [Route("api/ia")]
     [Authorize]
-    public class IAController : ControllerBase
+    public class IAController : BaseController
     {
         private readonly IIAService _iaService;
 
@@ -23,16 +24,10 @@ namespace Learnly.Api.Controllers
             if (request?.Mensagens == null || !request.Mensagens.Any())
                 return BadRequest("Mensagens inválidas.");
 
-            var mensagens = new List<Message>();
-
-            mensagens.AddRange(request.Mensagens);
-
+            var mensagens = new List<Message>(request.Mensagens);
             var resposta = await _iaService.Chatbot(mensagens);
 
-            return Ok(new
-            {
-                resposta
-            });
+            return Success(new { resposta });
         }
     }
 }

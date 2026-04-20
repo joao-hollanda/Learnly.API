@@ -10,11 +10,10 @@ namespace Learnly.Repository.Interfaces
         Task Atualizar(List<PlanoEstudo> planos);
         Task<PlanoMateria?> ObterPlanoMateriaPorId(int planoMateriaId);
         Task Salvar();
-        Task<ResumoGeralDto> GerarResumoGeral(int usuarioId);
-        Task<ComparacaoHorasDto?> CompararHoras(int usuarioId);
+        Task<(int HorasTotais, int HorasConcluidas)> GerarResumoGeral(int usuarioId);
         Task<PlanoEstudo> ObterPlanoPorId(int planoId);
         Task<List<PlanoEstudo>> ListarPorUsuario(int usuarioId);
-        Task Excluir (PlanoEstudo plano);
+        Task Excluir(PlanoEstudo plano);
         Task<int> ContarPorUsuario(int usuarioId);
         Task<PlanoEstudo> ObterPlanoAtivo(int usuarioId);
     }

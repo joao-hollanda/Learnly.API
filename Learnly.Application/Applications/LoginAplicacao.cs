@@ -1,6 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using Learnly.Application.Interfaces;
 using Learnly.Domain.Entities;
+using Learnly.Domain.Exceptions.Autenticacao;
 using Learnly.Repository.Interfaces;
 using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
@@ -23,10 +24,10 @@ namespace Learnly.Application.Applications
         public bool ValidarLogin(Usuario usuario, string senha)
         {
             if (usuario == null)
-                throw new Exception("Usuário inválido");
+                throw new CredenciaisInvalidasException();
 
             if (string.IsNullOrEmpty(senha))
-                throw new Exception("Senha é obrigatória");
+                throw new CredenciaisInvalidasException();
 
             if (!BCrypt.Net.BCrypt.Verify(senha, usuario.Senha))
                 return false;

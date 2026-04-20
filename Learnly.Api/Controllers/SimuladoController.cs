@@ -2,10 +2,9 @@ using Learnly.Api.Models.Simulados.Request;
 using Learnly.Api.Models.Simulados.Response;
 using Learnly.Application.Interfaces;
 using Learnly.Domain.Entities.Simulados;
-using Learnly.Domain.Enums;
+using Learnly.API.Controllers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Learnly.API.Controllers;
 
 namespace Learnly.Api.Controllers
 {
@@ -21,213 +20,133 @@ namespace Learnly.Api.Controllers
             _simuladoAplicacao = simuladoAplicacao;
         }
 
-        [HttpPost()]
-        [Route("")]
+        [HttpPost]
         public async Task<IActionResult> CriarSimulado([FromBody] SimuladoRequest dto)
         {
-            try
+            var usuarioId = GetUserId();
+            if (usuarioId == null) return Forbid();
+
+            var simulado = new Simulado
             {
-                var usuarioId = GetUserId();
-                if (usuarioId == null)
-                {
-                    return Forbid();
-                }
+                UsuarioId = usuarioId.Value,
+                Data = DateTime.UtcNow
+            };
 
-                var simuladoDominio = new Simulado
-                {
-                    UsuarioId = (int)usuarioId,
-                    Data = DateTime.UtcNow
-                };
-
-                var simuladoId = await _simuladoAplicacao.GerarSimulado(simuladoDominio, dto.Disciplinas, dto.QuantidadeQuestoes);
-
-                return Ok(simuladoId);
-            }
-            catch
-            {
-                return BadRequest("Houve um erro ao fazer a requisição");
-            }
+            var simuladoId = await _simuladoAplicacao.GerarSimulado(simulado, dto.Disciplinas, dto.QuantidadeQuestoes);
+            return Success(simuladoId);
         }
 
-        [HttpPut()]
-        [Route("Responder/{simuladoId}")]
-
-        public async Task<IActionResult> ResponderSimulado([FromRoute] int simuladoId, [FromBody] List<RespostaRequest> respostasSimulado)
+        [HttpPut("Responder/{simuladoId}")]
+        public async Task<IActionResult> ResponderSimulado([FromRoute] int simuladoId, [FromBody] List<RespostaRequest> respostasDto)
         {
-            try
+            var usuarioId = GetUserId();
+            if (usuarioId == null) return Forbid();
+
+            var respostas = respostasDto.Select(r => new RespostaSimulado
             {
-                var respostas = new List<RespostaSimulado>();
+                SimuladoId = simuladoId,
+                QuestaoId = r.QuestaoId,
+                AlternativaId = r.AlternativaId
+            }).ToList();
 
-                foreach (var resposta in respostasSimulado)
-                {
-                    respostas.Add(
-                        new RespostaSimulado
-                        {
-                            SimuladoId = simuladoId,
-                            QuestaoId = resposta.QuestaoId,
-                            AlternativaId = resposta.AlternativaId
-                        }
-                    );
-                }
+            var simulado = await _simuladoAplicacao.ResponderSimulado(simuladoId, respostas, usuarioId.Value);
 
-                var simuladoDominio = await _simuladoAplicacao.Obter(simuladoId);
-
-                simuladoDominio.Respostas = respostas;
-
-                var simulado = await _simuladoAplicacao.ResponderSimulado(simuladoDominio);
-
-                var simuladoResposta = new SimuladoCorrigido
-                {
-                    Nota = simulado.NotaFinal,
-                    Desempenho = simulado.Desempenho
-                };
-
-                return Ok(simuladoResposta);
-            }
-            catch 
+            return Success(new SimuladoCorrigido
             {
-                return BadRequest("Houve um erro ao fazer a requisição");
-            }
+                Nota = simulado.NotaFinal,
+                Desempenho = simulado.Desempenho
+            });
         }
 
-        [HttpGet]
-        [Route("{simuladoId}")]
+        [HttpGet("{simuladoId}")]
         public async Task<IActionResult> ObterSimulado([FromRoute] int simuladoId)
         {
-            try
+            var usuarioId = GetUserId();
+            if (usuarioId == null) return Forbid();
+
+            var simulado = await _simuladoAplicacao.Obter(simuladoId, usuarioId.Value);
+
+            return Success(new SimuladoObter
             {
-                var simulado = await _simuladoAplicacao.Obter(simuladoId);
-            
-                if (simulado == null)
-                    return NotFound("Simulado não encontrado");
+                SimuladoId = simulado.SimuladoId,
+                NotaFinal = simulado.NotaFinal,
+                Data = simulado.Data,
 
-                if (simulado.UsuarioId != GetUserId())
-                    return Forbid("Este simulado pertence a outro usuário!");
-
-                var dto = new SimuladoObter
+                Questoes = simulado.Questoes.Select(sq => new QuestaoSimuladoDto
                 {
-                    SimuladoId = simulado.SimuladoId,
-                    NotaFinal = simulado.NotaFinal,
-                    Data = simulado.Data,
-
-                    Questoes = simulado.Questoes.Select(sq => new QuestaoSimuladoDto
+                    QuestaoId = sq.Questao.QuestaoId,
+                    Titulo = sq.Questao.Titulo,
+                    Disciplina = sq.Questao.Disciplina,
+                    Arquivos = sq.Questao.Arquivos,
+                    Contexto = sq.Questao.Contexto,
+                    IntroducaoAlternativa = sq.Questao.IntroducaoAlternativa,
+                    Alternativas = sq.Questao.Alternativas.Select(a => new AlternativaDto
                     {
-                        QuestaoId = sq.Questao.QuestaoId,
-                        Titulo = sq.Questao.Titulo,
-                        Disciplina = sq.Questao.Disciplina,
-                        Arquivos = sq.Questao.Arquivos,
-                        Contexto = sq.Questao.Contexto,
-                        IntroducaoAlternativa = sq.Questao.IntroducaoAlternativa,
-                        Alternativas = sq.Questao.Alternativas.Select(a => new AlternativaDto
-                        {
-                            AlternativaId = a.AlternativaId,
-                            Letra = a.Letra,
-                            Texto = a.Texto,
-                            Correta = a.Correta,
-                            Arquivo = a.Arquivo
-                        }).ToList()
-                    }).ToList(),
-
-                    Respostas = simulado.Respostas.Select(r => new RespostaSimuladoDto
-                    {
-                        QuestaoId = r.QuestaoId,
-                        AlternativaId = r.AlternativaId,
-                        Explicacao = r.Explicacao
+                        AlternativaId = a.AlternativaId,
+                        Letra = a.Letra,
+                        Texto = a.Texto,
+                        Correta = a.Correta,
+                        Arquivo = a.Arquivo
                     }).ToList()
-                };
+                }).ToList(),
 
-                return Ok(dto);
-
-            }
-            catch
-            {
-                return BadRequest("Houve um erro ao fazer a requisição");
-            }
+                Respostas = simulado.Respostas.Select(r => new RespostaSimuladoDto
+                {
+                    QuestaoId = r.QuestaoId,
+                    AlternativaId = r.AlternativaId,
+                    Explicacao = r.Explicacao
+                }).ToList()
+            });
         }
 
-        [HttpGet]
-        [Route("Listar")]
+        [HttpGet("Listar")]
         public async Task<IActionResult> Listar5()
         {
-            try
-            {
-                var usuarioId = GetUserId();
-                if (usuarioId != null)
-                {
-                    var simulados = await _simuladoAplicacao.Listar5((int)usuarioId);
-                    var simuladosListados = new List<SimuladoObter>();
+            var usuarioId = GetUserId();
+            if (usuarioId == null) return Forbid();
 
-                    foreach (Simulado simulado in simulados)
+            var simulados = await _simuladoAplicacao.Listar5(usuarioId.Value);
+
+            return Success(simulados.Select(simulado => new SimuladoObter
+            {
+                SimuladoId = simulado.SimuladoId,
+                NotaFinal = simulado.NotaFinal,
+                Data = simulado.Data,
+
+                Questoes = simulado.Questoes.Select(sq => new QuestaoSimuladoDto
+                {
+                    QuestaoId = sq.Questao.QuestaoId,
+                    Titulo = sq.Questao.Titulo,
+                    Disciplina = sq.Questao.Disciplina,
+                    Arquivos = sq.Questao.Arquivos,
+                    Contexto = sq.Questao.Contexto,
+                    IntroducaoAlternativa = sq.Questao.IntroducaoAlternativa,
+                    Alternativas = sq.Questao.Alternativas.Select(a => new AlternativaDto
                     {
-                        var dto = new SimuladoObter
-                        {
-                            SimuladoId = simulado.SimuladoId,
-                            NotaFinal = simulado.NotaFinal,
-                            Data = simulado.Data,
+                        AlternativaId = a.AlternativaId,
+                        Letra = a.Letra,
+                        Texto = a.Texto,
+                        Correta = a.Correta,
+                        Arquivo = a.Arquivo
+                    }).ToList()
+                }).ToList(),
 
-                            Questoes = simulado.Questoes.Select(sq => new QuestaoSimuladoDto
-                            {
-                                QuestaoId = sq.Questao.QuestaoId,
-                                Titulo = sq.Questao.Titulo,
-                                Disciplina = sq.Questao.Disciplina,
-                                Arquivos = sq.Questao.Arquivos,
-                                Contexto = sq.Questao.Contexto,
-                                IntroducaoAlternativa = sq.Questao.IntroducaoAlternativa,
-                                Alternativas = sq.Questao.Alternativas.Select(a => new AlternativaDto
-                                {
-                                    AlternativaId = a.AlternativaId,
-                                    Letra = a.Letra,
-                                    Texto = a.Texto,
-                                    Correta = a.Correta,
-                                    Arquivo = a.Arquivo
-                                }).ToList()
-                            }).ToList(),
-
-                            Respostas = simulado.Respostas.Select(r => new RespostaSimuladoDto
-                            {
-                                QuestaoId = r.QuestaoId,
-                                AlternativaId = r.AlternativaId,
-                                Explicacao = r.Explicacao
-                            }).ToList()
-                        };
-
-                        simuladosListados.Add(dto);
-                    }
-
-                    return Ok(simuladosListados);
-
-                }
-                else
+                Respostas = simulado.Respostas.Select(r => new RespostaSimuladoDto
                 {
-                    return Forbid();
-                }
-            }
-            catch 
-            {
-                return BadRequest("Houve um erro ao fazer a requisição");
-            }
+                    QuestaoId = r.QuestaoId,
+                    AlternativaId = r.AlternativaId,
+                    Explicacao = r.Explicacao
+                }).ToList()
+            }).ToList());
         }
 
-        [HttpGet]
-        [Route("Contar")]
+        [HttpGet("Contar")]
         public async Task<IActionResult> ContarTotal()
         {
-            try
-            {
-                var usuarioId = GetUserId();
-                if (usuarioId != null)
-                {
-                    return Ok(await _simuladoAplicacao.Contar((int)usuarioId));
-                }
-                else
-                {
-                    return Forbid();
-                }
-            }
-            catch
-            {
-                return BadRequest("Houve um erro ao fazer a requisição");
-            }
+            var usuarioId = GetUserId();
+            if (usuarioId == null) return Forbid();
+
+            return Success(await _simuladoAplicacao.Contar(usuarioId.Value));
         }
     }
 }

@@ -1,6 +1,6 @@
 using Learnly.Domain.Entities;
 
-namespace Learnly.Domain.Interfaces.Repositories
+namespace Learnly.Repository.Interfaces
 {
     public interface IEventoEstudoRepositorio
     {

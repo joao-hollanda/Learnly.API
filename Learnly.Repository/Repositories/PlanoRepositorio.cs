@@ -49,14 +49,16 @@ namespace Learnly.Repository
             await _contexto.SaveChangesAsync();
         }
 
-        public async Task<ResumoGeralDto?> GerarResumoGeral(int usuarioId)
+        public async Task<(int HorasTotais, int HorasConcluidas)> GerarResumoGeral(int usuarioId)
         {
-            return await _contexto.Database.SqlQueryRaw<ResumoGeralDto>("SELECT horas_totais as \"HorasTotais\", horas_concluidas as \"HorasConcluidas\" FROM fn_resumo_geral({0})", usuarioId).FirstOrDefaultAsync();
-        }
+            var query = _contexto.PlanosEstudo
+                .Where(p => p.UsuarioId == usuarioId)
+                .SelectMany(p => p.PlanoMaterias);
 
-        public async Task<ComparacaoHorasDto?> CompararHoras(int usuarioId)
-        {
-            return await _contexto.Database.SqlQueryRaw<ComparacaoHorasDto>("SELECT horas_hoje as \"HorasHoje\", horas_ontem as \"HorasOntem\", diferenca as \"Diferenca\" FROM fn_comparar_horas({0})", usuarioId).FirstOrDefaultAsync();
+            var horasTotais = await query.SumAsync(pm => pm.HorasTotais);
+            var horasConcluidas = await query.SumAsync(pm => pm.HorasConcluidas);
+
+            return (horasTotais, horasConcluidas);
         }
 
         public async Task<List<PlanoEstudo>> ListarPorUsuario(int usuarioId)

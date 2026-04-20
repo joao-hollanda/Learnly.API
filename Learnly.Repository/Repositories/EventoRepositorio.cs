@@ -1,8 +1,8 @@
 using Learnly.Domain.Entities;
-using Learnly.Domain.Interfaces.Repositories;
+using Learnly.Repository.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
-namespace Learnly.Infra.Data.Repositories
+namespace Learnly.Repository.Repositories
 {
     public class EventoEstudoRepositorio : IEventoEstudoRepositorio
     {

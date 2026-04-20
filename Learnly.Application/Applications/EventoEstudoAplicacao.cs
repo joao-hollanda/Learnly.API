@@ -1,17 +1,25 @@
+using FluentValidation;
 using Learnly.Application.DTOs;
 using Learnly.Application.Interfaces;
 using Learnly.Domain.Entities;
-using Learnly.Domain.Interfaces.Repositories;
+using Learnly.Repository.Interfaces;
 
-namespace Learnly.Application.Services
+namespace Learnly.Application.Applications
 {
     public class EventoEstudoAplicacao : IEventoEstudoAplicacao
     {
         private readonly IEventoEstudoRepositorio _repositorio;
+        private readonly IValidator<EventoEstudo> _eventoValidator;
+        private readonly IValidator<CriarEventoEstudoDto> _dtoValidator;
 
-        public EventoEstudoAplicacao(IEventoEstudoRepositorio repositorio)
+        public EventoEstudoAplicacao(
+            IEventoEstudoRepositorio repositorio,
+            IValidator<EventoEstudo> eventoValidator,
+            IValidator<CriarEventoEstudoDto> dtoValidator)
         {
             _repositorio = repositorio;
+            _eventoValidator = eventoValidator;
+            _dtoValidator = dtoValidator;
         }
 
         public async Task<List<EventoEstudo>> Listar(int usuarioId)
@@ -21,9 +29,6 @@ namespace Learnly.Application.Services
 
         public async Task Criar(string titulo, DateTime inicio, DateTime fim, int usuarioId)
         {
-            if (fim <= inicio)
-                throw new ArgumentException("Data final deve ser maior que a inicial.");
-
             var evento = new EventoEstudo
             {
                 Titulo = titulo,
@@ -32,6 +37,7 @@ namespace Learnly.Application.Services
                 UsuarioId = usuarioId
             };
 
+            await _eventoValidator.ValidateAndThrowAsync(evento);
             await _repositorio.Adicionar(evento);
         }
 
@@ -40,31 +46,23 @@ namespace Learnly.Application.Services
             await _repositorio.Remover(eventoId);
         }
 
-        public async Task CriarEmLote(
-            int usuarioId,
-            List<CriarEventoEstudoDto> eventosDto
-        )
+        public async Task CriarEmLote(int usuarioId, List<CriarEventoEstudoDto> eventosDto)
         {
             if (eventosDto == null || !eventosDto.Any())
                 throw new ArgumentException("Lista de eventos vazia.");
 
-            var eventos = eventosDto.Select(e =>
-            {
-                if (e.Fim <= e.Inicio)
-                    throw new ArgumentException("Evento com horário inválido.");
+            foreach (var dto in eventosDto)
+                await _dtoValidator.ValidateAndThrowAsync(dto);
 
-                return new EventoEstudo
-                {
-                    Titulo = e.Titulo,
-                    Inicio = e.Inicio,
-                    Fim = e.Fim,
-                    UsuarioId = usuarioId
-                };
+            var eventos = eventosDto.Select(e => new EventoEstudo
+            {
+                Titulo = e.Titulo,
+                Inicio = e.Inicio,
+                Fim = e.Fim,
+                UsuarioId = usuarioId
             }).ToList();
 
             await _repositorio.AdicionarEmLote(eventos);
         }
-
-
     }
 }
