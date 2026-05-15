@@ -1,10 +1,13 @@
+using System.Security.Claims;
 using System.Text;
+using System.Threading.RateLimiting;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Learnly.Application.Extensions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.IdentityModel.Tokens;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,7 +22,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowReact", policy =>
     {
         policy.WithOrigins(
-                "https://learnly-edu.vercel.app",
+                "https://learnly.com.br",
                 "http://localhost:3000"
               )
               .AllowAnyHeader()
@@ -59,7 +62,7 @@ builder.Services.AddAuthentication(options =>
         ClockSkew = TimeSpan.Zero
     };
 
-    options.Events = new Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerEvents
+    options.Events = new JwtBearerEvents
     {
         OnMessageReceived = context =>
         {
@@ -71,7 +74,7 @@ builder.Services.AddAuthentication(options =>
                     context.Token = token;
                 }
             }
-            return System.Threading.Tasks.Task.CompletedTask;
+            return Task.CompletedTask;
         },
         OnAuthenticationFailed = context =>
         {
@@ -141,10 +144,55 @@ builder.Services.AddValidatorsFromAssemblyContaining<Learnly.Application.Validat
 builder.Services.AddControllers();
 #endregion
 
+#region Rate Limiting 
+
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+    // Login e cadastro — por IP (endpoints sem autenticação)
+    options.AddPolicy("login", context =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 5,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0
+            }));
+
+    // IA e simulado — por usuário autenticado (endpoints que custam recurso externo)
+    options.AddPolicy("ia", context =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "anonimo",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 10,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0
+            }));
+
+    // Demais endpoints autenticados — por usuário
+    options.AddPolicy("geral", context =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "anonimo",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 60,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0
+            }));
+
+});
+
+#endregion
 var app = builder.Build();
 
 #region Pipeline
+
 app.UseCors("AllowReact");
+
+app.UseRateLimiter();
 
 app.UseMiddleware<Learnly.Api.Middlewares.ExceptionMiddleware>();
 
