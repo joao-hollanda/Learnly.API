@@ -22,7 +22,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowReact", policy =>
     {
         policy.WithOrigins(
-                "https://learnly.com.br",
+                "https://www.learnly.com.br",
                 "http://localhost:3000"
               )
               .AllowAnyHeader()
