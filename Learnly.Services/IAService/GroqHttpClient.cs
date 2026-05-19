@@ -56,7 +56,21 @@ namespace Learnly.Services.IAService
 
                 if ((int)httpResponse.StatusCode == 429)
                 {
-                    await Task.Delay(TimeSpan.FromSeconds((i + 1) * 8));
+                    if (i == 2)
+                        throw new Exception("O MentorIA está sobrecarregado no momento. Aguarde alguns segundos e tente novamente.");
+
+                    var segundos = 8 * (i + 1);
+                    try
+                    {
+                        var erro = JsonConvert.DeserializeObject<dynamic>(respostaJson);
+                        string mensagemErro = erro?.error?.message?.ToString() ?? "";
+                        var match = Regex.Match(mensagemErro, @"try again in (\d+(?:\.\d+)?)s");
+                        if (match.Success && double.TryParse(match.Groups[1].Value, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out double seg))
+                            segundos = (int)Math.Ceiling(seg) + 1;
+                    }
+                    catch { }
+
+                    await Task.Delay(TimeSpan.FromSeconds(segundos));
                     continue;
                 }
 
