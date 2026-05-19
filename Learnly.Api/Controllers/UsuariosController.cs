@@ -55,6 +55,8 @@ namespace Learnly.Api.Controllers
         [HttpPut("Reativar/{usuarioId}")]
         public async Task<IActionResult> Reativar([FromRoute] int usuarioId)
         {
+            if (GetUserId() != usuarioId) return Forbid();
+
             await _usuarioAplicacao.Reativar(usuarioId);
             return Success();
         }
@@ -62,6 +64,8 @@ namespace Learnly.Api.Controllers
         [HttpDelete("Desativar/{usuarioId}")]
         public async Task<IActionResult> Desativar([FromRoute] int usuarioId)
         {
+            if(GetUserId() != usuarioId) return Forbid();
+            
             await _usuarioAplicacao.Desativar(usuarioId);
             return Success();
         }

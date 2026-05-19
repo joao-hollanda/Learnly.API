@@ -22,11 +22,8 @@ namespace Learnly.Application.Extensions
             services.AddScoped<IMateriaAplicacao, MateriaAplicacao>();
             services.AddScoped<IEventoEstudoAplicacao, EventoEstudoAplicacao>();
 
-            services.AddScoped<IIAService>(sp =>
-            {
-                var apiKey = sp.GetRequiredService<IConfiguration>()["ApiKeys:GroqIA"];
-                return new IAService(apiKey);
-            });
+            services.AddScoped<IIAService, IAService>();
+            services.AddScoped<IIAAplicacao, IAAplicacao>();
 
             return services;
         }

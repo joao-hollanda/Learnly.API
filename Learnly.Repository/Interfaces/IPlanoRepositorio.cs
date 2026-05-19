@@ -16,5 +16,6 @@ namespace Learnly.Repository.Interfaces
         Task Excluir(PlanoEstudo plano);
         Task<int> ContarPorUsuario(int usuarioId);
         Task<PlanoEstudo> ObterPlanoAtivo(int usuarioId);
+        Task<PlanoEstudo?> ObterPlanoAtivoComTracking(int usuarioId);
     }
 }

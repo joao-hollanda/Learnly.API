@@ -57,37 +57,37 @@ namespace Learnly.Api.Middlewares
 
             var (statusCode, mensagem) = exception switch
             {
-                CredenciaisInvalidasException e  => (HttpStatusCode.Unauthorized,        e.Message),
-                TokenInvalidoException e          => (HttpStatusCode.Unauthorized,        e.Message),
+                CredenciaisInvalidasException e => (HttpStatusCode.Unauthorized, e.Message),
+                TokenInvalidoException e => (HttpStatusCode.Unauthorized, e.Message),
 
-                UsuarioNaoEncontradoException e   => (HttpStatusCode.NotFound,            e.Message),
-                EmailJaCadastradoException e      => (HttpStatusCode.Conflict,            e.Message),
-                SenhaInvalidaException e          => (HttpStatusCode.BadRequest,          e.Message),
-                UsuarioInativoException e         => (HttpStatusCode.Forbidden,           e.Message),
+                UsuarioNaoEncontradoException e => (HttpStatusCode.NotFound, e.Message),
+                EmailJaCadastradoException e => (HttpStatusCode.Conflict, e.Message),
+                SenhaInvalidaException e => (HttpStatusCode.BadRequest, e.Message),
+                UsuarioInativoException e => (HttpStatusCode.Forbidden, e.Message),
 
-                PlanoNaoEncontradoException e     => (HttpStatusCode.NotFound,            e.Message),
-                LimitePlanosAtingidoException e   => (HttpStatusCode.UnprocessableEntity, e.Message),
-                MateriaJaAdicionadaException e    => (HttpStatusCode.Conflict,            e.Message),
-                MateriaNaoEncontradaException e   => (HttpStatusCode.NotFound,            e.Message),
-                MateriaDoPlanoNaoEncontradaException e => (HttpStatusCode.NotFound,       e.Message),
-                HorasExcedemTotalException e      => (HttpStatusCode.BadRequest,          e.Message),
+                PlanoNaoEncontradoException e => (HttpStatusCode.NotFound, e.Message),
+                LimitePlanosAtingidoException e => (HttpStatusCode.UnprocessableEntity, e.Message),
+                MateriaJaAdicionadaException e => (HttpStatusCode.Conflict, e.Message),
+                MateriaNaoEncontradaException e => (HttpStatusCode.NotFound, e.Message),
+                MateriaDoPlanoNaoEncontradaException e => (HttpStatusCode.NotFound, e.Message),
+                HorasExcedemTotalException e => (HttpStatusCode.BadRequest, e.Message),
 
-                SimuladoNaoEncontradoException e  => (HttpStatusCode.NotFound,            e.Message),
-                SimuladoNaoAutorizadoException e  => (HttpStatusCode.Forbidden,           e.Message),
-                RespostasNaoInformadasException e => (HttpStatusCode.BadRequest,          e.Message),
-                QuestaoNaoEncontradaException e   => (HttpStatusCode.NotFound,            e.Message),
-                AlternativaNaoEncontradaException e => (HttpStatusCode.NotFound,          e.Message),
+                SimuladoNaoEncontradoException e => (HttpStatusCode.NotFound, e.Message),
+                SimuladoNaoAutorizadoException e => (HttpStatusCode.Forbidden, e.Message),
+                RespostasNaoInformadasException e => (HttpStatusCode.BadRequest, e.Message),
+                QuestaoNaoEncontradaException e => (HttpStatusCode.NotFound, e.Message),
+                AlternativaNaoEncontradaException e => (HttpStatusCode.NotFound, e.Message),
 
-                EventoNaoEncontradoException e    => (HttpStatusCode.NotFound,            e.Message),
-                EventoDataInvalidaException e     => (HttpStatusCode.BadRequest,          e.Message),
+                EventoNaoEncontradoException e => (HttpStatusCode.NotFound, e.Message),
+                EventoDataInvalidaException e => (HttpStatusCode.BadRequest, e.Message),
 
-                NaoEncontradoException e          => (HttpStatusCode.NotFound,            e.Message),
-                RegraDeNegocioException e         => (HttpStatusCode.UnprocessableEntity, e.Message),
-                DomainException e                 => (HttpStatusCode.BadRequest,          e.Message),
+                NaoEncontradoException e => (HttpStatusCode.NotFound, e.Message),
+                RegraDeNegocioException e => (HttpStatusCode.UnprocessableEntity, e.Message),
+                DomainException e => (HttpStatusCode.BadRequest, e.Message),
 
-                ArgumentException e               => (HttpStatusCode.BadRequest,          e.Message),
+                ArgumentException e => (HttpStatusCode.BadRequest, e.Message),
 
-                _                                 => (HttpStatusCode.InternalServerError, "Ocorreu um erro interno. Tente novamente mais tarde.")
+                _ => (HttpStatusCode.InternalServerError, "Ocorreu um erro interno. Tente novamente mais tarde.")
             };
 
             if (statusCode == HttpStatusCode.InternalServerError)
@@ -102,6 +102,7 @@ namespace Learnly.Api.Middlewares
                 data = (object)null,
                 errors = new[] { mensagem }
             }, _jsonOptions);
+            
             await context.Response.WriteAsync(body);
         }
     }

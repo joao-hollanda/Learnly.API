@@ -16,7 +16,6 @@ namespace Learnly.Application.Applications
         readonly IUsuarioRepositorio _usuarioRepositorio;
         readonly IMateriaRepositorio _materiaRepositorio;
         readonly IHoraLancadaRepositorio _horaLancadaRepositorio;
-        readonly IIAService _iaService;
         readonly IValidator<PlanoEstudo> _validator;
 
         public PlanoAplicacao(
@@ -24,54 +23,69 @@ namespace Learnly.Application.Applications
             IUsuarioRepositorio usuarioRepositorio,
             IMateriaRepositorio materiaRepositorio,
             IHoraLancadaRepositorio horaLancadaRepositorio,
-            IIAService iaService,
             IValidator<PlanoEstudo> validator)
         {
             _planoRepositorio = planoRepositorio;
             _usuarioRepositorio = usuarioRepositorio;
             _materiaRepositorio = materiaRepositorio;
             _horaLancadaRepositorio = horaLancadaRepositorio;
-            _iaService = iaService;
             _validator = validator;
         }
 
+        // Cria e persiste um PlanoEstudo já montado
         public async Task<PlanoEstudo> Criar(CriarPlanoIADTO dto)
         {
-            PlanoEstudo plano;
-
-            if (dto.PlanoIa)
+            var plano = new PlanoEstudo
             {
-                var planoBase = new PlanoEstudo
-                {
-                    Titulo = dto.Titulo,
-                    Objetivo = dto.Objetivo,
-                    DataInicio = dto.DataInicio,
-                    DataFim = dto.DataFim,
-                    HorasPorSemana = dto.HorasPorSemana,
-                    UsuarioId = dto.UsuarioId
-                };
-                plano = await _iaService.GerarPlanoIA(planoBase);
-                plano.Titulo = dto.Titulo;
-                plano.Objetivo = dto.Objetivo;
-                plano.DataInicio = dto.DataInicio;
-                plano.DataFim = dto.DataFim;
-                plano.HorasPorSemana = dto.HorasPorSemana;
-                plano.UsuarioId = dto.UsuarioId;
-            }
-            else
+                Titulo = dto.Titulo,
+                Objetivo = dto.Objetivo,
+                UsuarioId = dto.UsuarioId,
+                DataInicio = DateTime.SpecifyKind(dto.DataInicio, DateTimeKind.Utc),
+                DataFim = DateTime.SpecifyKind(dto.DataFim, DateTimeKind.Utc),
+                HorasPorSemana = dto.HorasPorSemana,
+                Ativo = false
+            };
+
+            await _validator.ValidateAndThrowAsync(plano);
+
+            var totalPlanosUsuario = await _planoRepositorio.ContarPorUsuario(plano.UsuarioId);
+            if (totalPlanosUsuario >= 5)
+                throw new LimitePlanosAtingidoException();
+
+            plano.PlanoMaterias ??= new List<PlanoMateria>();
+
+            foreach (var planoMateria in plano.PlanoMaterias)
             {
-                plano = new PlanoEstudo
+                if (planoMateria.Materia == null) continue;
+
+                var nomeMateria = planoMateria.Materia.Nome?.Trim();
+                if (string.IsNullOrEmpty(nomeMateria)) continue;
+
+                var materiaExistente = await _materiaRepositorio.ObterPorNome(nomeMateria);
+
+                if (materiaExistente != null)
                 {
-                    Titulo = dto.Titulo,
-                    Objetivo = dto.Objetivo,
-                    UsuarioId = dto.UsuarioId,
-                    DataInicio = DateTime.SpecifyKind(dto.DataInicio, DateTimeKind.Utc),
-                    DataFim = DateTime.SpecifyKind(dto.DataFim, DateTimeKind.Utc),
-                    HorasPorSemana = 0,
-                    Ativo = false
-                };
+                    planoMateria.Materia = materiaExistente;
+                    planoMateria.MateriaId = materiaExistente.MateriaId;
+                }
+                else
+                {
+                    planoMateria.Materia = new Materia
+                    {
+                        Nome = nomeMateria,
+                        Cor = planoMateria.Materia.Cor,
+                        GeradaPorIA = planoMateria.Materia.GeradaPorIA
+                    };
+                }
             }
 
+            await _planoRepositorio.Criar(plano);
+            return plano;
+        }
+
+        // Persiste um PlanoEstudo já gerado pela IA
+        public async Task<PlanoEstudo> CriarDaIA(PlanoEstudo plano)
+        {
             await _validator.ValidateAndThrowAsync(plano);
 
             var totalPlanosUsuario = await _planoRepositorio.ContarPorUsuario(plano.UsuarioId);
@@ -241,6 +255,10 @@ namespace Learnly.Application.Applications
         public async Task<PlanoEstudo> ObterPlanoAtivo(int usuarioId)
         {
             return await _planoRepositorio.ObterPlanoAtivo(usuarioId);
+        }
+        public async Task<PlanoEstudo> ObterPlanoAtivoComTracking(int usuarioId)
+        {
+            return await _planoRepositorio.ObterPlanoAtivoComTracking(usuarioId);
         }
     }
 }

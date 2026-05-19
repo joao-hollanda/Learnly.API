@@ -88,6 +88,18 @@ namespace Learnly.Repository
         {
             return await _contexto.PlanosEstudo
                 .AsNoTracking()
+                .Include(p => p.PlanoMaterias)
+                    .ThenInclude(pm => pm.Materia)
+                .FirstOrDefaultAsync(p =>
+                    p.UsuarioId == usuarioId &&
+                    p.Ativo
+                );
+        }
+        public async Task<PlanoEstudo?> ObterPlanoAtivoComTracking(int usuarioId)
+        {
+            return await _contexto.PlanosEstudo
+                .Include(p => p.PlanoMaterias)
+                    .ThenInclude(pm => pm.Materia)
                 .FirstOrDefaultAsync(p =>
                     p.UsuarioId == usuarioId &&
                     p.Ativo

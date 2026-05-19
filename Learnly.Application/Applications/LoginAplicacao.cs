@@ -12,12 +12,10 @@ namespace Learnly.Application.Applications
 {
     public class LoginAplicacao : ILoginAplicacao
     {
-        readonly IUsuarioRepositorio _usuarioRepositorio;
         readonly IConfiguration _configuration;
 
-        public LoginAplicacao(IUsuarioRepositorio usuarioRepositorio, IConfiguration configuration)
+        public LoginAplicacao(IConfiguration configuration)
         {
-            _usuarioRepositorio = usuarioRepositorio;
             _configuration = configuration;
         }
 

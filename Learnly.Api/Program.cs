@@ -4,6 +4,7 @@ using System.Threading.RateLimiting;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Learnly.Application.Extensions;
+using Learnly.Services.IAService;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.IdentityModel.Tokens;
@@ -14,6 +15,10 @@ var builder = WebApplication.CreateBuilder(args);
 #region Aplicações + Repositórios
 builder.Services.AddApplicationServices(builder.Configuration);
 builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddHttpClient<GroqHttpClient>(client =>
+{
+    client.DefaultRequestHeaders.Add("Authorization", "Bearer " + builder.Configuration["ApiKeys:GroqIA"]);
+});
 #endregion
 
 #region CORS

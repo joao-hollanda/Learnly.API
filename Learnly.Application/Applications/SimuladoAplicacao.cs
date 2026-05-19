@@ -16,7 +16,11 @@ namespace Learnly.Application.Applications
         readonly IIAService _iaService;
         readonly IValidator<Simulado> _validator;
 
-        public SimuladoAplicacao(ISimuladoRepositorio simuladoRepositorio, IUsuarioRepositorio usuarioRepositorio, IIAService iaService, IValidator<Simulado> validator)
+        public SimuladoAplicacao(
+            ISimuladoRepositorio simuladoRepositorio,
+            IUsuarioRepositorio usuarioRepositorio,
+            IIAService iaService,
+            IValidator<Simulado> validator)
         {
             _simuladoRepositorio = simuladoRepositorio;
             _usuarioRepositorio = usuarioRepositorio;
@@ -79,6 +83,7 @@ namespace Learnly.Application.Applications
 
             simuladoBanco.Respostas = respostas;
             simuladoBanco.Desempenho = desempenho;
+
             simuladoBanco.Desempenho.Feedback = await _iaService.GerarFeedbackAsync(simuladoBanco);
 
             var questoesErradas = simuladoBanco.Questoes
@@ -93,8 +98,11 @@ namespace Learnly.Application.Applications
                 })
                 .ToList();
 
-            var respostasDict = respostas.ToDictionary(r => r.QuestaoId);
-            var respostasComExplicacao = await _iaService.GerarExplicacoes(questoesErradas, respostasDict);
+            var respostasDict = respostas
+                .Where(r => r.Alternativa != null)
+                .ToDictionary(r => r.QuestaoId);
+
+            var respostasComExplicacao = await _iaService.GerarExplicacoesAsync(questoesErradas, respostasDict);
 
             foreach (var explicacao in respostasComExplicacao)
             {
