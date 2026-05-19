@@ -57,7 +57,7 @@ namespace Learnly.Services.IAService
                 if ((int)httpResponse.StatusCode == 429)
                 {
                     if (i == 2)
-                        throw new Exception("O MentorIA está sobrecarregado no momento. Aguarde alguns segundos e tente novamente.");
+                        throw new Exception("O MentorIA está sobrecarregado no momento. Aguarde alguns minutos e tente novamente.");
 
                     var segundos = 8 * (i + 1);
                     try
