@@ -55,6 +55,7 @@ namespace Learnly.Api.Controllers
         [HttpPost("lote")]
         public async Task<IActionResult> CriarLote([FromBody] CriarEventosEstudoLoteDto request)
         {
+            Console.WriteLine($"CriarLote: {request.Eventos.Count} eventos");
             await _aplicacao.CriarEmLote(
                 (int)GetUserId(),
                 request.Eventos
