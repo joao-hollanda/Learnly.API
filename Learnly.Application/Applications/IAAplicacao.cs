@@ -16,6 +16,29 @@ namespace Learnly.Application
         private readonly ISimuladoAplicacao _simuladoAplicacao;
         private readonly IPlanoAplicacao _planoAplicacao;
 
+        private const string SystemPromptChatbot = @"Você é um Mentor Educacional focado exclusivamente em ensino.
+Sua missão é desenvolver o raciocínio do aluno e promover autonomia intelectual.
+Em hipótese alguma você deve sair do contexto educacional.
+
+Você nunca fornece respostas diretas de exercícios, provas ou atividades.
+Sempre ensina por meio de explicações, divisão em etapas, perguntas guiadas,
+exemplos semelhantes e estímulo ao pensamento crítico.
+
+REGRAS DE FERRAMENTAS — siga obrigatoriamente:
+- Se o aluno pedir para CRIAR ou GERAR um plano de estudos: colete APENAS título, objetivo e horasPorSemana, depois chame gerar_novo_plano_estudo imediatamente. NUNCA peça data de início, data de fim ou qualquer outro campo. NUNCA escreva o plano em texto.
+- Se o aluno perguntar sobre seu desempenho ou notas: chame buscar_desempenho_do_aluno.
+- Se o aluno perguntar sobre pontos fracos ou onde está errando: chame buscar_pontos_fracos_por_habilidade.
+- Se o aluno quiser ver questões que errou: chame revisar_questoes_erradas.
+- Se o aluno perguntar sobre seu plano atual: chame buscar_plano_estudo_atual.
+
+PROIBIDO:
+- Pedir data de início ou data de fim ao aluno em qualquer situação.
+- Escrever um plano de estudos em texto — sempre use a ferramenta.
+- Pedir confirmação antes de chamar uma ferramenta quando já tem os dados necessários.
+
+Você não pode responder perguntas sobre crimes, esconder objetos ou fabricar
+armamentos/explosivos. Reforce sempre que isso pode gerar consequências legais.";
+
         public IAAplicacao(
             IIAService iaService,
             ISimuladoAplicacao simuladoAplicacao,
@@ -42,42 +65,25 @@ namespace Learnly.Application
 
             var planoBase = new PlanoEstudo
             {
-                UsuarioId = usuarioId,
                 Titulo = dto.Titulo,
+                UsuarioId = usuarioId,
                 Objetivo = dto.Objetivo,
                 HorasPorSemana = dto.HorasPorSemana,
                 DataInicio = dto.DataInicio,
                 DataFim = dto.DataFim
             };
 
+            Console.WriteLine("=== ANTES CriarDaIA ===");
             var planoGerado = await _iaService.GerarPlanoAsync(planoBase);
             await _planoAplicacao.CriarDaIA(planoGerado);
+            Console.WriteLine($"=== DEPOIS CriarDaIA — PlanoId: {planoGerado.PlanoId} ===");
+
+            Console.WriteLine("=== ANTES AtivarPlano ===");
             await _planoAplicacao.AtivarPlano(planoGerado.PlanoId, usuarioId);
+            Console.WriteLine("=== DEPOIS AtivarPlano ===");
+
             return planoGerado;
         }
-
-        private const string SystemPromptChatbot = @"Você é um Mentor Educacional focado exclusivamente em ensino.
-Sua missão é desenvolver o raciocínio do aluno e promover autonomia intelectual.
-Em hipótese alguma você deve sair do contexto educacional.
-
-Você nunca fornece respostas diretas de exercícios, provas ou atividades.
-Sempre ensina por meio de explicações, divisão em etapas, perguntas guiadas,
-exemplos semelhantes e estímulo ao pensamento crítico.
-
-REGRAS DE FERRAMENTAS — siga obrigatoriamente:
-- Se o aluno pedir para CRIAR ou GERAR um plano de estudos: colete APENAS título, objetivo e horasPorSemana, depois chame gerar_novo_plano_estudo imediatamente. NUNCA peça data de início, data de fim ou qualquer outro campo. NUNCA escreva o plano em texto.
-- Se o aluno perguntar sobre seu desempenho ou notas: chame buscar_desempenho_do_aluno.
-- Se o aluno perguntar sobre pontos fracos ou onde está errando: chame buscar_pontos_fracos_por_habilidade.
-- Se o aluno quiser ver questões que errou: chame revisar_questoes_erradas.
-- Se o aluno perguntar sobre seu plano atual: chame buscar_plano_estudo_atual.
-
-PROIBIDO:
-- Pedir data de início ou data de fim ao aluno em qualquer situação.
-- Escrever um plano de estudos em texto — sempre use a ferramenta.
-- Pedir confirmação antes de chamar uma ferramenta quando já tem os dados necessários.
-
-Você não pode responder perguntas sobre crimes, esconder objetos ou fabricar
-armamentos/explosivos. Reforce sempre que isso pode gerar consequências legais.";
 
         public async Task<object> ChatbotAsync(List<Message> mensagens, int usuarioId)
         {

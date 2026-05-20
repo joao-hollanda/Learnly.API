@@ -105,7 +105,7 @@ namespace Learnly.Application.Applications
 
                 if (materiaExistente != null)
                 {
-                    planoMateria.Materia = materiaExistente;
+                    planoMateria.Materia = null;
                     planoMateria.MateriaId = materiaExistente.MateriaId;
                 }
                 else

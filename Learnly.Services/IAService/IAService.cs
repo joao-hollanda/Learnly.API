@@ -18,32 +18,84 @@ namespace Learnly.Services.IAService
         public async Task<string> GerarFeedbackAsync(Simulado simulado)
         {
             var resumoIA = GerarResumoIA(simulado);
-            var jsonResumo = JsonConvert.SerializeObject(resumoIA, Formatting.Indented);
+            var jsonResumo = JsonConvert.SerializeObject(resumoIA);
+
+            var habilidadesErros = simulado.Questoes
+                .Where(sq =>
+                {
+                    var resp = simulado.Respostas.FirstOrDefault(r => r.QuestaoId == sq.QuestaoId);
+                    return resp?.Alternativa != null && resp.Alternativa.Letra != sq.Questao?.AlternativaCorreta;
+                })
+                .GroupBy(sq => HabilidadeDetector.Detectar(sq.Questao))
+                .OrderByDescending(g => g.Count())
+                .Take(3)
+                .Select(g => $"{g.Key} ({g.Count()} erro(s))")
+                .ToList();
+
+            var habilidadesStr = habilidadesErros.Any()
+                ? string.Join(", ", habilidadesErros)
+                : "sem padrão claro";
+
+            var acertos = simulado.Desempenho.QuantidadeDeAcertos;
+            var total = simulado.Desempenho.QuantidadeDeQuestoes;
+            var pct = total > 0 ? (double)acertos / total * 100 : 0;
+            var nivel = pct >= 70 ? "avançado" : pct >= 45 ? "intermediário" : "iniciante";
 
             var mensagens = new List<Message>
             {
                 new()
                 {
-                    role    = "system",
-                    content = @"Você é um mentor direto e experiente no ENEM. 
-Você analisa dados de simulado e entrega um diagnóstico honesto em linguagem simples — 
-sem enrolação, sem elogios vazios. Fale como alguém que já corrigiu milhares de provas."
+                    role = "system",
+                    content = @"Você é um professor experiente de cursinho pré-vestibular especializado no ENEM.
+        Você conhece profundamente os materiais didáticos brasileiros e sabe exatamente quais recursos 
+        recomendar para cada habilidade e nível de aluno.
+
+        Suas respostas são diretas, específicas e acionáveis — nunca genéricas.
+        Você menciona livros, canais, playlists e sites reais e conhecidos no Brasil.
+        Você adapta a linguagem ao nível do aluno (iniciante, intermediário, avançado)."
                 },
                 new()
                 {
-                    role    = "user",
-                    content = $@"Analise os dados deste simulado e gere um feedback em 3 blocos curtos (máximo 3 linhas cada):
-{simulado.Desempenho.QuantidadeDeAcertos}/{simulado.Desempenho.QuantidadeDeQuestoes} acertos
+                    role = "user",
+                    content = $@"
+                Resultado ENEM:
+                - Acertos: {acertos}/{total}
+                - Percentual: {pct:F0}%
+                - Nível estimado: {nivel}
 
-{jsonResumo}
+                Erros por habilidade:
+                {habilidadesStr}
 
-**Onde você está:** diagnóstico do nível atual — o aluno está errando por falta de base ou por gestão de prova?
+                Dados detalhados:
+                {jsonResumo}
 
-**O que te trava:** qual é o padrão de erro? Conecte áreas, tempo gasto e tipo de questão em uma frase cirúrgica.
+                Gere um diagnóstico curto, humano e preciso, baseado SOMENTE nos dados fornecidos.
 
-**O que fazer amanhã:** uma ação concreta e específica — conteúdo ou estratégia, não generalidades.
+                Regras importantes:
+                - Não invente dificuldades sem evidência clara
+                - Se houver poucos erros ou amostra pequena, diga explicitamente que ainda não há padrão consistente
+                - Não afirmar 'nível avançado' com confiança alta se houver poucas questões
+                - Não citar IDs internos, nomes técnicos, códigos ou identificadores de simulados
+                - Evite frases genéricas, motivacionais ou de coach
+                - O recurso recomendado deve ser realmente relevante para a principal dificuldade detectada
+                - Se o desempenho for muito bom, foque em consistência, velocidade, aprofundamento ou manutenção de desempenho
+                - Se não houver fraqueza clara, o recurso pode ser voltado para treino geral de ENEM
+                - Máximo de 1 frase por seção
+                - Linguagem direta e natural
 
-Seja direto. Use **negrito** só para o que realmente importa. Sem listas, sem introdução, sem conclusão motivacional."
+                Responda EXATAMENTE neste formato:
+
+                **Onde você está**
+                [resumo objetivo do desempenho atual]
+
+                **O que te trava**
+                [principal gargalo identificado OU informe que ainda não existe padrão claro]
+
+                **Recurso recomendado**
+                [1 recurso específico e realmente relevante]
+
+                **Próximo passo**
+                [1 ação prática e concreta para as próximas 24h]"
                 }
             };
 
@@ -51,7 +103,8 @@ Seja direto. Use **negrito** só para o que realmente importa. Sem listas, sem i
             {
                 model = "llama-3.1-8b-instant",
                 messages = mensagens,
-                temperature = 0.5
+                temperature = 0.4,
+                max_tokens = 600
             };
 
             return await _groq.EnviarAsync(request) ?? "Erro ao gerar feedback.";
@@ -68,52 +121,60 @@ Seja direto. Use **negrito** só para o que realmente importa. Sem listas, sem i
             {
                 new
                 {
-                    role    = "system",
+                    role = "system",
                     content = $@"- Materias devem ser relevantes para '{plano.Objetivo}'
-- O plano deve ter {totalMats} materias
-- Cada matéria 5-8 tópicos
-- Datas 2026
-- JSON válido, apenas o objeto, sem explicações
-- O plano deve ter {horasTotais} horas totais
-- Deve estar ordenado para suprir dependências"
+            - O plano deve ter {totalMats} materias
+            - Cada matéria deve ter 5-8 tópicos
+            - JSON válido, apenas o objeto, sem explicações
+            - O plano deve ter {horasTotais} horas totais distribuídas entre as matérias
+            - Ordenado para suprir dependências"
                 },
                 new
                 {
-                    role    = "user",
-                    content = $@"Gere um plano de estudos '{plano.Titulo}' seguindo rigorosamente este schema:
-{{
-  ""HorasPorSemana"": {plano.HorasPorSemana},
-  ""Ativo"": true,
-  ""UsuarioId"": {plano.UsuarioId},
-  ""PlanoMaterias"": [
-    {{
-      ""Materia"": {{
-        ""Nome"": ""Nome da Matéria"",
-        ""GeradaPorIA"": true,
-        ""Cor"": ""Cor em formato HEX (#RRGGBB)"",
-        ""HorasTotais"": ""calcule conforme a prioridade e as horas totais"",
-        ""Topicos"": [""Tópico 1"", ""Tópico 2""]
-      }}
-    }}
-  ]
-}}"
+                    role = "user",
+                    content = $@"Gere um plano de estudos '{plano.Titulo}' seguindo rigorosamente este schema JSON:
+            {{
+            ""HorasPorSemana"": {plano.HorasPorSemana},
+            ""Ativo"": true,
+            ""UsuarioId"": {plano.UsuarioId},
+            ""PlanoMaterias"": [
+                {{
+                ""HorasTotais"": 10,
+                ""HorasConcluidas"": 0,
+                ""Topicos"": [""Tópico 1"", ""Tópico 2"", ""Tópico 3""],
+                ""Materia"": {{
+                    ""Nome"": ""Nome da Matéria"",
+                    ""GeradaPorIA"": true,
+                    ""Cor"": ""#4F46E5""
+                }}
+                }}
+            ]
+            }}"
                 }
             };
 
             var requestBody = new
             {
-                model = "openai/gpt-oss-120b",
+                model = "llama-3.3-70b-versatile",
                 messages,
                 temperature = 0.2,
                 response_format = new { type = "json_object" },
                 max_tokens = 4000
             };
 
-            var planoJson = await _groq.EnviarAsync(requestBody)
-                ?? throw new Exception("Erro ao gerar plano IA: resposta nula.");
+            var planoJson = await _groq.EnviarAsync(requestBody);
 
-            return JsonConvert.DeserializeObject<PlanoEstudo>(planoJson)
-                ?? throw new Exception("Resposta da IA não pôde ser desserializada em PlanoEstudo.");
+            if (planoJson == null)
+                throw new Exception("Erro ao gerar plano IA: resposta nula.");
+
+            var planoCriado = JsonConvert.DeserializeObject<PlanoEstudo>(planoJson);
+            planoCriado.Titulo = plano.Titulo;
+            planoCriado.UsuarioId = plano.UsuarioId;
+            planoCriado.Objetivo = plano.Objetivo;
+            planoCriado.DataInicio = plano.DataInicio;
+            planoCriado.DataFim = plano.DataFim;
+
+            return planoCriado ?? throw new Exception("Erro ao gerar plano IA: resposta inválida.");
         }
 
         public async Task<Message?> EnviarMensagensAsync(ChatRequest request)
