@@ -21,6 +21,7 @@ namespace Learnly.Application.Extensions
             services.AddScoped<IPlanoAplicacao, PlanoAplicacao>();
             services.AddScoped<IMateriaAplicacao, MateriaAplicacao>();
             services.AddScoped<IEventoEstudoAplicacao, EventoEstudoAplicacao>();
+            services.AddScoped<IDesempenhoAplicacao, DesempenhoAplicacao>();
 
             services.AddScoped<IIAService, IAService>();
             services.AddScoped<IIAAplicacao, IAAplicacao>();

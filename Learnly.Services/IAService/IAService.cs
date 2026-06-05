@@ -9,10 +9,12 @@ namespace Learnly.Services.IAService
     public class IAService : IIAService
     {
         private readonly GroqHttpClient _groq;
+        private readonly IBuscaMaterialService _busca;
 
-        public IAService(GroqHttpClient groq)
+        public IAService(GroqHttpClient groq, IBuscaMaterialService busca)
         {
             _groq = groq;
+            _busca = busca;
         }
 
         public async Task<string> GerarFeedbackAsync(Simulado simulado)
@@ -101,7 +103,7 @@ namespace Learnly.Services.IAService
 
             var request = new ChatRequest
             {
-                model = "llama-3.1-8b-instant",
+                model = "llama-3.3-70b-versatile",
                 messages = mensagens,
                 temperature = 0.4,
                 max_tokens = 600
@@ -241,7 +243,7 @@ Não adicione quaisquer textos fora desse objeto JSON."
 
             var requestBody = new
             {
-                model = "llama-3.1-8b-instant",
+                model = "llama-3.3-70b-versatile",
                 messages = mensagens,
                 temperature = 0.2,
             };
@@ -258,6 +260,102 @@ Não adicione quaisquer textos fora desse objeto JSON."
 
             return JsonConvert.DeserializeObject<List<ExplicacaoQuestao>>(json)
                 ?? throw new Exception("Não foi possível desserializar as explicações.");
+        }
+
+        public async Task<List<MaterialRecomendado>> GerarMateriaisAsync(Simulado simulado)
+        {
+            var resumoIA = GerarResumoIA(simulado);
+            var jsonResumo = JsonConvert.SerializeObject(resumoIA);
+
+            var habilidadesErros = simulado.Questoes
+                .Where(sq =>
+                {
+                    var resp = simulado.Respostas.FirstOrDefault(r => r.QuestaoId == sq.QuestaoId);
+                    return resp?.Alternativa != null && resp.Alternativa.Letra != sq.Questao?.AlternativaCorreta;
+                })
+                .GroupBy(sq => HabilidadeDetector.Detectar(sq.Questao))
+                .OrderByDescending(g => g.Count())
+                .Take(3)
+                .Select(g => $"{g.Key} ({g.Count()} erro(s))")
+                .ToList();
+
+            var habilidadesStr = habilidadesErros.Any()
+                ? string.Join(", ", habilidadesErros)
+                : "sem padrão claro";
+
+            var mensagens = new List<Message>
+            {
+                new()
+                {
+                    role = "system",
+                    content = @"Você é um professor especialista no ENEM que conhece os melhores canais e videoaulas gratuitas do YouTube no Brasil
+(ex.: Ferretto, Professor Boaro, Toda Matéria, Descomplica, Stoodi, Equaciona).
+Você recomenda APENAS videoaulas do YouTube, específicas e realmente úteis para a dificuldade do aluno. NUNCA inventa URLs."
+                },
+                new()
+                {
+                    role = "user",
+                    content = $@"Com base no desempenho do aluno no ENEM, recomende videoaulas do YouTube.
+
+                Erros por habilidade: {habilidadesStr}
+
+                Dados detalhados:
+                {jsonResumo}
+
+                Regras:
+                - Recomende de 3 a 4 videoaulas do YouTube
+                - Priorize as áreas/habilidades com mais erros
+                - Se não houver erros claros, recomende videoaulas de treino geral para o ENEM
+                - 'termoBusca' deve ser um termo de busca específico em português que encontre essa videoaula no YouTube (inclua o nome do canal ou professor quando fizer sentido)
+                - NÃO inclua URLs em nenhum campo
+                - 'motivo' com no máximo 1 frase, dirigido ao aluno
+
+                Responda EXATAMENTE neste formato JSON, sem textos fora do objeto:
+                {{
+                  ""materiais"": [
+                    {{
+                      ""titulo"": ""nome da videoaula ou canal"",
+                      ""tipo"": ""Videoaula"",
+                      ""area"": ""disciplina ou assunto"",
+                      ""motivo"": ""por que ajuda no que o aluno errou"",
+                      ""termoBusca"": ""termo de busca ideal no YouTube""
+                    }}
+                  ]
+                }}"
+                }
+            };
+
+            var requestBody = new
+            {
+                model = "llama-3.3-70b-versatile",
+                messages = mensagens,
+                temperature = 0.3,
+                response_format = new { type = "json_object" },
+                max_tokens = 1200
+            };
+
+            var raw = await _groq.EnviarAsync(requestBody);
+            if (string.IsNullOrWhiteSpace(raw))
+                return new List<MaterialRecomendado>();
+
+            var wrapper = JsonConvert.DeserializeObject<MateriaisWrapper>(raw);
+            var materiais = wrapper?.Materiais ?? new List<MaterialRecomendado>();
+
+            await Task.WhenAll(materiais.Select(async material =>
+            {
+                material.Plataforma = "youtube";
+                var termo = string.IsNullOrWhiteSpace(material.TermoBusca)
+                    ? material.Titulo
+                    : material.TermoBusca;
+                material.Url = await _busca.ResolverUrlAsync(termo);
+            }));
+
+            return materiais;
+        }
+
+        private class MateriaisWrapper
+        {
+            public List<MaterialRecomendado> Materiais { get; set; }
         }
 
         private SimuladoIAResumo GerarResumoIA(Simulado simulado)

@@ -15,4 +15,5 @@ public class Simulado
     public List<RespostaSimulado> Respostas { get; set; } = new();
 
     public DesempenhoSimulado Desempenho { get; set; }
+    public List<MaterialRecomendado> MateriaisRecomendados { get; set; } = new();
 }

@@ -60,8 +60,12 @@ armamentos/explosivos. Reforce sempre que isso pode gerar consequências legais.
         public async Task<PlanoEstudo> GerarPlanoAsync(int usuarioId, CriarPlanoIADTO dto)
         {
             dto.UsuarioId = usuarioId;
-            dto.DataInicio = DateTime.UtcNow;
-            dto.DataFim = DateTime.UtcNow.AddMonths(3);
+
+            var dataInicio = dto.DataInicio == default ? DateTime.UtcNow : dto.DataInicio;
+            var dataFim = dto.DataFim == default ? dataInicio.AddMonths(3) : dto.DataFim;
+
+            dto.DataInicio = DateTime.SpecifyKind(dataInicio, DateTimeKind.Utc);
+            dto.DataFim = DateTime.SpecifyKind(dataFim, DateTimeKind.Utc);
 
             var planoBase = new PlanoEstudo
             {
@@ -226,7 +230,7 @@ armamentos/explosivos. Reforce sempre que isso pode gerar consequências legais.
 
         private async Task<string> BuscarDesempenho(int usuarioId)
         {
-            var simulados = await _simuladoAplicacao.Listar5(usuarioId);
+            var simulados = await _simuladoAplicacao.Listar(usuarioId);
             if (!simulados.Any()) return "O aluno não possui simulados concluídos.";
 
             var notas = simulados.Select(s => new
@@ -240,7 +244,7 @@ armamentos/explosivos. Reforce sempre que isso pode gerar consequências legais.
 
         private async Task<string> BuscarPontosFracos(int usuarioId, string args)
         {
-            var simList = await _simuladoAplicacao.Listar5(usuarioId);
+            var simList = await _simuladoAplicacao.Listar(usuarioId);
             if (!simList.Any()) return "O aluno não tem simulados suficientes.";
 
             var dictHabilidades = new Dictionary<string, int>();
@@ -265,7 +269,7 @@ armamentos/explosivos. Reforce sempre que isso pode gerar consequências legais.
 
         private async Task<string> RevisarQuestoesErradas(int usuarioId, string args)
         {
-            var sims = await _simuladoAplicacao.Listar5(usuarioId);
+            var sims = await _simuladoAplicacao.Listar(usuarioId);
             var erradas = new List<object>();
 
             foreach (var s in sims)

@@ -83,7 +83,7 @@ namespace Learnly.Repository.Repositories
                 .FirstOrDefaultAsync(s => s.SimuladoId == simuladoId);
         }
 
-        public async Task<List<Simulado>> Listar5(int usuarioId)
+        public async Task<List<Simulado>> Listar(int usuarioId, int quantidade)
         {
             return await _context.Simulados
                 .Include(s => s.Questoes)
@@ -92,8 +92,29 @@ namespace Learnly.Repository.Repositories
                 .Include(s => s.Respostas)
                 .Where(s => s.UsuarioId == usuarioId)
                 .OrderByDescending(s => s.Data)
-                .Take(5)
+                .Take(quantidade)
                 .ToListAsync();
+        }
+
+        public async Task<List<(int SimuladoId, decimal NotaFinal, DateTime Data, int QuantidadeQuestoes)>> ListarResumo(int usuarioId, int quantidade)
+        {
+            var dados = await _context.Simulados
+                .AsNoTracking()
+                .Where(s => s.UsuarioId == usuarioId)
+                .OrderByDescending(s => s.Data)
+                .Take(quantidade)
+                .Select(s => new
+                {
+                    s.SimuladoId,
+                    s.NotaFinal,
+                    s.Data,
+                    Quantidade = s.Questoes.Count
+                })
+                .ToListAsync();
+
+            return dados
+                .Select(d => (d.SimuladoId, d.NotaFinal, d.Data, d.Quantidade))
+                .ToList();
         }
 
         public async Task<Questao> ObterQuestao(int questaoId)
@@ -127,6 +148,25 @@ namespace Learnly.Repository.Repositories
             return await _context.Simulados
                 .Where(s => s.UsuarioId == usuarioId)
                 .CountAsync();
+        }
+
+        public async Task<List<RespostaSimulado>> ListarRespostasComQuestao(int usuarioId)
+        {
+            return await _context.RespostasSimulado
+                .AsNoTracking()
+                .Include(r => r.Questao)
+                .Include(r => r.Alternativa)
+                .Where(r => r.Simulado.UsuarioId == usuarioId)
+                .ToListAsync();
+        }
+
+        public async Task<List<Simulado>> ListarNotas(int usuarioId)
+        {
+            return await _context.Simulados
+                .AsNoTracking()
+                .Where(s => s.UsuarioId == usuarioId && s.Respostas.Any())
+                .OrderBy(s => s.Data)
+                .ToListAsync();
         }
     }
 }

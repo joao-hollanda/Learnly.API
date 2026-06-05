@@ -47,5 +47,15 @@ namespace Learnly.Repository
                 .OrderBy(h => h.Data)
                 .ToListAsync();
         }
+
+        public async Task<List<DateTime>> ListarDatasComLancamento(int usuarioId)
+        {
+            return await _contexto.HorasLancadas
+                .Where(h => h.UsuarioId == usuarioId)
+                .Select(h => h.Data)
+                .Distinct()
+                .OrderByDescending(d => d)
+                .ToListAsync();
+        }
     }
 }

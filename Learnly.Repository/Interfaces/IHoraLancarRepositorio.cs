@@ -8,5 +8,6 @@ namespace Learnly.Repository.Interfaces
         Task<HoraLancada?> ObterPorUsuarioEDataAsync(int usuarioId, DateTime data);
         Task<int> SomarHorasPeriodoAsync(int usuarioId, DateTime inicio, DateTime fim);
         Task<List<HoraLancada>> ListarPeriodoAsync(int usuarioId, DateTime inicio, DateTime fim);
+        Task<List<DateTime>> ListarDatasComLancamento(int usuarioId);
     }
 }

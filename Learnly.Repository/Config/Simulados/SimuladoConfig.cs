@@ -21,6 +21,12 @@ namespace Learnly.Repository.Config
                    .WithMany(u => u.Simulados);
 
             builder.OwnsOne(s => s.Desempenho);
+
+            builder.OwnsMany(s => s.MateriaisRecomendados, m =>
+            {
+                m.ToTable("MateriaisRecomendados");
+                m.WithOwner().HasForeignKey("SimuladoId");
+            });
         }
     }
 }

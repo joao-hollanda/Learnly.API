@@ -4,6 +4,8 @@ using System.Threading.RateLimiting;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Learnly.Application.Extensions;
+using Learnly.Application.Interfaces;
+using Learnly.Services.BuscaService;
 using Learnly.Services.IAService;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.RateLimiting;
@@ -19,6 +21,12 @@ builder.Services.AddHttpClient<GroqHttpClient>(client =>
 {
     client.DefaultRequestHeaders.Add("Authorization", "Bearer " + builder.Configuration["ApiKeys:GroqIA"]);
 });
+
+builder.Services.AddSingleton(new BuscaOptions
+{
+    YouTubeKey = builder.Configuration["ApiKeys:YouTube"]
+});
+builder.Services.AddHttpClient<IBuscaMaterialService, BuscaMaterialService>();
 #endregion
 
 #region CORS

@@ -15,5 +15,7 @@ namespace Learnly.Application.Interfaces
         Task<List<ExplicacaoQuestao>> GerarExplicacoesAsync(
             List<SimuladoQuestao> questoesErradas,
             Dictionary<int, RespostaSimulado> respostas);
+
+        Task<List<MaterialRecomendado>> GerarMateriaisAsync(Simulado simulado);
     }
 }

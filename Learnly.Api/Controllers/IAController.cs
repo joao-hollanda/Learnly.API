@@ -45,6 +45,8 @@ namespace Learnly.Api.Controllers
                 Titulo = request.Titulo,
                 Objetivo = request.Objetivo,
                 HorasPorSemana = request.HorasPorSemana,
+                DataInicio = request.DataInicio ?? default,
+                DataFim = request.DataFim ?? default,
                 UsuarioId = usuarioId.Value,
                 PlanoIa = true
             };
