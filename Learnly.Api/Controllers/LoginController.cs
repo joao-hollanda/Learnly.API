@@ -3,6 +3,7 @@ using Learnly.Application.Interfaces;
 using Learnly.API.Controllers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace Learnly.Api.Controllers
 {
@@ -43,6 +44,7 @@ namespace Learnly.Api.Controllers
         }
 
         [HttpPost]
+        [EnableRateLimiting("login")]
         public async Task<ActionResult> Login([FromBody] Login loginDTO)
         {
             var usuario = await _usuarioAplicacao.ObterPorEmail(loginDTO.Email);
@@ -91,6 +93,7 @@ namespace Learnly.Api.Controllers
         }
 
         [HttpPost("mobile")]
+        [EnableRateLimiting("login")]
         public async Task<ActionResult> LoginMobile([FromBody] Login loginDTO)
         {
             var usuario = await _usuarioAplicacao.ObterPorEmail(loginDTO.Email);
@@ -103,17 +106,21 @@ namespace Learnly.Api.Controllers
                 usuario.Id, usuario.Email, usuario.Nome, TimeSpan.FromHours(1)
             );
             var refreshToken = _loginAplicacao.GenerateToken(
-                usuario.Id, usuario.Email, usuario.Nome, TimeSpan.FromDays(30)
+                usuario.Id, usuario.Email, usuario.Nome, TimeSpan.FromDays(30), refreshToken: true
             );
 
             return Ok(new { accessToken, refreshToken });
         }
 
         [HttpPost("mobile/refresh")]
+        [EnableRateLimiting("login")]
         public IActionResult RefreshTokenMobile([FromBody] RefreshTokenRequest body)
         {
             var principal = _loginAplicacao.ValidarToken(body.RefreshToken);
             if (principal == null) return Unauthorized("Refresh token inválido");
+
+            if (principal.FindFirst("tipo")?.Value != "refresh")
+                return Unauthorized("Token informado não é um refresh token");
 
             var userId = principal.FindFirst("id")?.Value;
             var email = principal.FindFirst("email")?.Value;
@@ -125,7 +132,7 @@ namespace Learnly.Api.Controllers
                 int.Parse(userId), email, nome, TimeSpan.FromHours(1)
             );
             var newRefreshToken = _loginAplicacao.GenerateToken(
-                int.Parse(userId), email, nome, TimeSpan.FromDays(30)
+                int.Parse(userId), email, nome, TimeSpan.FromDays(30), refreshToken: true
             );
 
             return Ok(new { accessToken = newAccessToken, refreshToken = newRefreshToken });
@@ -149,6 +156,7 @@ namespace Learnly.Api.Controllers
         }
 
         [HttpGet("ping")]
+        [DisableRateLimiting]
         public IActionResult Ping() => Ok("pong");
     }
 }

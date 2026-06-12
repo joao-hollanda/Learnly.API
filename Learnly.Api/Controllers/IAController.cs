@@ -2,6 +2,7 @@ using Learnly.Services.Interfaces;
 using Learnly.API.Controllers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using consumindoIA.Domain;
 using Learnly.Application.Interfaces;
 using Learnly.Api.Models.Planos.Request;
@@ -11,6 +12,7 @@ namespace Learnly.Api.Controllers
     [ApiController]
     [Route("api/ia")]
     [Authorize]
+    [EnableRateLimiting("ia")]
     public class IAController : BaseController
     {
         private readonly IIAAplicacao _iaAplicacao;

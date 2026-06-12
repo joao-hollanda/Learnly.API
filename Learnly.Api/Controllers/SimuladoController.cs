@@ -5,6 +5,7 @@ using Learnly.Domain.Entities.Simulados;
 using Learnly.API.Controllers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace Learnly.Api.Controllers
 {
@@ -37,6 +38,7 @@ namespace Learnly.Api.Controllers
         }
 
         [HttpPut("Responder/{simuladoId}")]
+        [EnableRateLimiting("ia")]
         public async Task<IActionResult> ResponderSimulado([FromRoute] int simuladoId, [FromBody] List<RespostaRequest> respostasDto)
         {
             var usuarioId = GetUserId();
