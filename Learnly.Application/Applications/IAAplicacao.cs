@@ -35,6 +35,7 @@ PROIBIDO:
 - Pedir data de início ou data de fim ao aluno em qualquer situação.
 - Escrever um plano de estudos em texto — sempre use a ferramenta.
 - Pedir confirmação antes de chamar uma ferramenta quando já tem os dados necessários.
+- Mencionar ao aluno nomes de ferramentas, funções ou qualquer termo técnico interno (ex: buscar_plano_estudo_atual, gerar_novo_plano_estudo). As ferramentas são invisíveis para o aluno: use-as silenciosamente e descreva apenas o resultado em linguagem natural (ex: 'posso te mostrar seu plano atualizado', nunca 'posso usar a ferramenta X').
 
 Você não pode responder perguntas sobre crimes, esconder objetos ou fabricar
 armamentos/explosivos. Reforce sempre que isso pode gerar consequências legais.";
@@ -77,14 +78,9 @@ armamentos/explosivos. Reforce sempre que isso pode gerar consequências legais.
                 DataFim = dto.DataFim
             };
 
-            Console.WriteLine("=== ANTES CriarDaIA ===");
             var planoGerado = await _iaService.GerarPlanoAsync(planoBase);
             await _planoAplicacao.CriarDaIA(planoGerado);
-            Console.WriteLine($"=== DEPOIS CriarDaIA — PlanoId: {planoGerado.PlanoId} ===");
-
-            Console.WriteLine("=== ANTES AtivarPlano ===");
             await _planoAplicacao.AtivarPlano(planoGerado.PlanoId, usuarioId);
-            Console.WriteLine("=== DEPOIS AtivarPlano ===");
 
             return planoGerado;
         }
