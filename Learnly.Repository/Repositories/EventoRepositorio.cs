@@ -4,45 +4,42 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Learnly.Repository.Repositories
 {
-    public class EventoEstudoRepositorio : IEventoEstudoRepositorio
+    public class EventoEstudoRepositorio : BaseRepositorio, IEventoEstudoRepositorio
     {
-        private readonly LearnlyContexto _context;
-
-        public EventoEstudoRepositorio(LearnlyContexto context)
+        public EventoEstudoRepositorio(LearnlyContexto contexto) : base(contexto)
         {
-            _context = context;
         }
 
         public async Task<List<EventoEstudo>> ObterPorUsuario(int usuarioId)
         {
-            return await _context.EventosEstudo
+            return await _contexto.EventosEstudo
                 .Where(e => e.UsuarioId == usuarioId)
                 .ToListAsync();
         }
 
         public async Task<EventoEstudo?> ObterPorId(int id)
         {
-            return await _context.EventosEstudo.FindAsync(id);
+            return await _contexto.EventosEstudo.FindAsync(id);
         }
 
         public async Task Adicionar(EventoEstudo evento)
         {
-            _context.EventosEstudo.Add(evento);
-            await _context.SaveChangesAsync();
+            _contexto.EventosEstudo.Add(evento);
+            await _contexto.SaveChangesAsync();
         }
 
         public async Task Remover(int id)
         {
-            var eventos = await _context.EventosEstudo.Where(e => e.UsuarioId == id).ToListAsync();
+            var eventos = await _contexto.EventosEstudo.Where(e => e.UsuarioId == id).ToListAsync();
 
-            _context.EventosEstudo.RemoveRange(eventos);
-            await _context.SaveChangesAsync();
+            _contexto.EventosEstudo.RemoveRange(eventos);
+            await _contexto.SaveChangesAsync();
         }
 
         public async Task AdicionarEmLote(List<EventoEstudo> eventos)
         {
-            _context.EventosEstudo.AddRange(eventos);
-            await _context.SaveChangesAsync();
+            _contexto.EventosEstudo.AddRange(eventos);
+            await _contexto.SaveChangesAsync();
         }
 
     }

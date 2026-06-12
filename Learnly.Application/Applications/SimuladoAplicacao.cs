@@ -1,4 +1,5 @@
 using FluentValidation;
+using Learnly.Application.DTOs;
 using Learnly.Application.Interfaces;
 using Learnly.Domain.Entities;
 using Learnly.Domain.Entities.Simulados;
@@ -111,6 +112,15 @@ namespace Learnly.Application.Applications
                     respostaSimulado.Explicacao = explicacao.Explicacao;
             }
 
+            try
+            {
+                simuladoBanco.MateriaisRecomendados = await _iaService.GerarMateriaisAsync(simuladoBanco);
+            }
+            catch
+            {
+                simuladoBanco.MateriaisRecomendados = new List<MaterialRecomendado>();
+            }
+
             simuladoBanco.NotaFinal = desempenho.QuantidadeDeQuestoes > 0
                 ? Math.Round((decimal)desempenho.QuantidadeDeAcertos / desempenho.QuantidadeDeQuestoes * 10, 2)
                 : 0;
@@ -131,14 +141,32 @@ namespace Learnly.Application.Applications
             return simulado;
         }
 
-        public async Task<List<Simulado>> Listar5(int usuarioId)
+        public async Task<List<Simulado>> Listar(int usuarioId, int quantidade = 5)
         {
             var usuarioDominio = await _usuarioRepositorio.Obter(usuarioId, true);
 
             if (usuarioDominio == null)
                 throw new UsuarioNaoEncontradoException();
 
-            return await _simuladoRepositorio.Listar5(usuarioId);
+            return await _simuladoRepositorio.Listar(usuarioId, quantidade);
+        }
+
+        public async Task<List<SimuladoResumoDto>> ListarResumo(int usuarioId, int quantidade = 9)
+        {
+            var usuarioDominio = await _usuarioRepositorio.Obter(usuarioId, true);
+
+            if (usuarioDominio == null)
+                throw new UsuarioNaoEncontradoException();
+
+            var resumos = await _simuladoRepositorio.ListarResumo(usuarioId, quantidade);
+
+            return resumos.Select(r => new SimuladoResumoDto
+            {
+                SimuladoId = r.SimuladoId,
+                NotaFinal = r.NotaFinal,
+                Data = r.Data,
+                QuantidadeQuestoes = r.QuantidadeQuestoes
+            }).ToList();
         }
 
         public async Task<int> Contar(int usuarioId)

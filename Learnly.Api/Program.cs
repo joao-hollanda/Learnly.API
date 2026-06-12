@@ -4,13 +4,24 @@ using System.Threading.RateLimiting;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Learnly.Application.Extensions;
+using Learnly.Application.Interfaces;
+using Learnly.Services.BuscaService;
 using Learnly.Services.IAService;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.IdentityModel.Tokens;
+using Serilog;
 
 
 var builder = WebApplication.CreateBuilder(args);
+
+#region Logging
+builder.Host.UseSerilog((context, config) => config
+    .MinimumLevel.Information()
+    .MinimumLevel.Override("Microsoft.AspNetCore", Serilog.Events.LogEventLevel.Warning)
+    .Enrich.FromLogContext()
+    .WriteTo.Console());
+#endregion
 
 #region Aplicações + Repositórios
 builder.Services.AddApplicationServices(builder.Configuration);
@@ -19,6 +30,12 @@ builder.Services.AddHttpClient<GroqHttpClient>(client =>
 {
     client.DefaultRequestHeaders.Add("Authorization", "Bearer " + builder.Configuration["ApiKeys:GroqIA"]);
 });
+
+builder.Services.AddSingleton(new BuscaOptions
+{
+    YouTubeKey = builder.Configuration["ApiKeys:YouTube"]
+});
+builder.Services.AddHttpClient<IBuscaMaterialService, BuscaMaterialService>();
 #endregion
 
 #region CORS
@@ -79,6 +96,13 @@ builder.Services.AddAuthentication(options =>
                     context.Token = token;
                 }
             }
+            return Task.CompletedTask;
+        },
+        OnTokenValidated = context =>
+        {
+            // refresh token (mobile, 30 dias) não pode ser usado como access token
+            if (context.Principal?.FindFirst("tipo")?.Value == "refresh")
+                context.Fail("Refresh token não pode ser usado para autenticação");
             return Task.CompletedTask;
         },
         OnAuthenticationFailed = context =>
@@ -169,7 +193,9 @@ builder.Services.AddRateLimiter(options =>
     // IA e simulado — por usuário autenticado (endpoints que custam recurso externo)
     options.AddPolicy("ia", context =>
         RateLimitPartition.GetFixedWindowLimiter(
-            partitionKey: context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "anonimo",
+            partitionKey: context.User.FindFirst("id")?.Value
+                ?? context.Connection.RemoteIpAddress?.ToString()
+                ?? "anonimo",
             factory: _ => new FixedWindowRateLimiterOptions
             {
                 PermitLimit = 10,
@@ -177,10 +203,12 @@ builder.Services.AddRateLimiter(options =>
                 QueueLimit = 0
             }));
 
-    // Demais endpoints autenticados — por usuário
+    // Demais endpoints — por usuário autenticado, ou por IP quando anônimo
     options.AddPolicy("geral", context =>
         RateLimitPartition.GetFixedWindowLimiter(
-            partitionKey: context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "anonimo",
+            partitionKey: context.User.FindFirst("id")?.Value
+                ?? context.Connection.RemoteIpAddress?.ToString()
+                ?? "anonimo",
             factory: _ => new FixedWindowRateLimiterOptions
             {
                 PermitLimit = 60,
@@ -194,6 +222,24 @@ builder.Services.AddRateLimiter(options =>
 var app = builder.Build();
 
 #region Pipeline
+
+app.UseSerilogRequestLogging();
+
+#region Security headers
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHsts();
+}
+
+app.Use(async (context, next) =>
+{
+    context.Response.Headers["X-Content-Type-Options"] = "nosniff";
+    context.Response.Headers["X-Frame-Options"] = "DENY";
+    context.Response.Headers["Referrer-Policy"] = "no-referrer";
+    context.Response.Headers["X-XSS-Protection"] = "0";
+    await next();
+});
+#endregion
 
 app.UseCors("AllowReact");
 
@@ -212,7 +258,7 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapControllers();
+app.MapControllers().RequireRateLimiting("geral");
 #endregion
 
 app.Run();

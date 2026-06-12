@@ -5,6 +5,7 @@ using Learnly.Domain.Entities;
 using Learnly.API.Controllers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace Learnly.Api.Controllers
 {
@@ -22,6 +23,7 @@ namespace Learnly.Api.Controllers
 
         [HttpPost("Criar")]
         [AllowAnonymous]
+        [EnableRateLimiting("login")]
         public async Task<ActionResult> Criar([FromBody] UsuarioCriar usuarioCriar)
         {
             var usuarioDominio = new Usuario

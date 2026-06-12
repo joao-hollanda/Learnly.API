@@ -2,14 +2,17 @@ using Learnly.Services.Interfaces;
 using Learnly.API.Controllers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using consumindoIA.Domain;
 using Learnly.Application.Interfaces;
+using Learnly.Api.Models.Planos.Request;
 
 namespace Learnly.Api.Controllers
 {
     [ApiController]
     [Route("api/ia")]
     [Authorize]
+    [EnableRateLimiting("ia")]
     public class IAController : BaseController
     {
         private readonly IIAAplicacao _iaAplicacao;
@@ -33,5 +36,26 @@ namespace Learnly.Api.Controllers
 
             return Success(resultado);
         }
+        [HttpPost("criar-plano")]
+        public async Task<IActionResult> CriarComIA([FromBody] CriarPlanoIARequest request)
+        {
+            var usuarioId = GetUserId();
+            if (usuarioId == null) return Unauthorized();
+
+            var dto = new Application.DTOs.CriarPlanoIADTO
+            {
+                Titulo = request.Titulo,
+                Objetivo = request.Objetivo,
+                HorasPorSemana = request.HorasPorSemana,
+                DataInicio = request.DataInicio ?? default,
+                DataFim = request.DataFim ?? default,
+                UsuarioId = usuarioId.Value,
+                PlanoIa = true
+            };
+
+            var plano = await _iaAplicacao.GerarPlanoAsync(usuarioId.Value, dto);
+            return Success(plano);
+        }
+
     }
 }

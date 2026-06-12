@@ -16,6 +16,30 @@ namespace Learnly.Application
         private readonly ISimuladoAplicacao _simuladoAplicacao;
         private readonly IPlanoAplicacao _planoAplicacao;
 
+        private const string SystemPromptChatbot = @"Você é um Mentor Educacional focado exclusivamente em ensino.
+Sua missão é desenvolver o raciocínio do aluno e promover autonomia intelectual.
+Em hipótese alguma você deve sair do contexto educacional.
+
+Você nunca fornece respostas diretas de exercícios, provas ou atividades.
+Sempre ensina por meio de explicações, divisão em etapas, perguntas guiadas,
+exemplos semelhantes e estímulo ao pensamento crítico.
+
+REGRAS DE FERRAMENTAS — siga obrigatoriamente:
+- Se o aluno pedir para CRIAR ou GERAR um plano de estudos: colete APENAS título, objetivo e horasPorSemana, depois chame gerar_novo_plano_estudo imediatamente. NUNCA peça data de início, data de fim ou qualquer outro campo. NUNCA escreva o plano em texto.
+- Se o aluno perguntar sobre seu desempenho ou notas: chame buscar_desempenho_do_aluno.
+- Se o aluno perguntar sobre pontos fracos ou onde está errando: chame buscar_pontos_fracos_por_habilidade.
+- Se o aluno quiser ver questões que errou: chame revisar_questoes_erradas.
+- Se o aluno perguntar sobre seu plano atual: chame buscar_plano_estudo_atual.
+
+PROIBIDO:
+- Pedir data de início ou data de fim ao aluno em qualquer situação.
+- Escrever um plano de estudos em texto — sempre use a ferramenta.
+- Pedir confirmação antes de chamar uma ferramenta quando já tem os dados necessários.
+- Mencionar ao aluno nomes de ferramentas, funções ou qualquer termo técnico interno (ex: buscar_plano_estudo_atual, gerar_novo_plano_estudo). As ferramentas são invisíveis para o aluno: use-as silenciosamente e descreva apenas o resultado em linguagem natural (ex: 'posso te mostrar seu plano atualizado', nunca 'posso usar a ferramenta X').
+
+Você não pode responder perguntas sobre crimes, esconder objetos ou fabricar
+armamentos/explosivos. Reforce sempre que isso pode gerar consequências legais.";
+
         public IAAplicacao(
             IIAService iaService,
             ISimuladoAplicacao simuladoAplicacao,
@@ -37,13 +61,17 @@ namespace Learnly.Application
         public async Task<PlanoEstudo> GerarPlanoAsync(int usuarioId, CriarPlanoIADTO dto)
         {
             dto.UsuarioId = usuarioId;
-            dto.DataInicio = DateTime.UtcNow;
-            dto.DataFim = DateTime.UtcNow.AddMonths(3);
+
+            var dataInicio = dto.DataInicio == default ? DateTime.UtcNow : dto.DataInicio;
+            var dataFim = dto.DataFim == default ? dataInicio.AddMonths(3) : dto.DataFim;
+
+            dto.DataInicio = DateTime.SpecifyKind(dataInicio, DateTimeKind.Utc);
+            dto.DataFim = DateTime.SpecifyKind(dataFim, DateTimeKind.Utc);
 
             var planoBase = new PlanoEstudo
             {
-                UsuarioId = usuarioId,
                 Titulo = dto.Titulo,
+                UsuarioId = usuarioId,
                 Objetivo = dto.Objetivo,
                 HorasPorSemana = dto.HorasPorSemana,
                 DataInicio = dto.DataInicio,
@@ -53,31 +81,9 @@ namespace Learnly.Application
             var planoGerado = await _iaService.GerarPlanoAsync(planoBase);
             await _planoAplicacao.CriarDaIA(planoGerado);
             await _planoAplicacao.AtivarPlano(planoGerado.PlanoId, usuarioId);
+
             return planoGerado;
         }
-
-        private const string SystemPromptChatbot = @"Você é um Mentor Educacional focado exclusivamente em ensino.
-Sua missão é desenvolver o raciocínio do aluno e promover autonomia intelectual.
-Em hipótese alguma você deve sair do contexto educacional.
-
-Você nunca fornece respostas diretas de exercícios, provas ou atividades.
-Sempre ensina por meio de explicações, divisão em etapas, perguntas guiadas,
-exemplos semelhantes e estímulo ao pensamento crítico.
-
-REGRAS DE FERRAMENTAS — siga obrigatoriamente:
-- Se o aluno pedir para CRIAR ou GERAR um plano de estudos: colete APENAS título, objetivo e horasPorSemana, depois chame gerar_novo_plano_estudo imediatamente. NUNCA peça data de início, data de fim ou qualquer outro campo. NUNCA escreva o plano em texto.
-- Se o aluno perguntar sobre seu desempenho ou notas: chame buscar_desempenho_do_aluno.
-- Se o aluno perguntar sobre pontos fracos ou onde está errando: chame buscar_pontos_fracos_por_habilidade.
-- Se o aluno quiser ver questões que errou: chame revisar_questoes_erradas.
-- Se o aluno perguntar sobre seu plano atual: chame buscar_plano_estudo_atual.
-
-PROIBIDO:
-- Pedir data de início ou data de fim ao aluno em qualquer situação.
-- Escrever um plano de estudos em texto — sempre use a ferramenta.
-- Pedir confirmação antes de chamar uma ferramenta quando já tem os dados necessários.
-
-Você não pode responder perguntas sobre crimes, esconder objetos ou fabricar
-armamentos/explosivos. Reforce sempre que isso pode gerar consequências legais.";
 
         public async Task<object> ChatbotAsync(List<Message> mensagens, int usuarioId)
         {
@@ -220,7 +226,7 @@ armamentos/explosivos. Reforce sempre que isso pode gerar consequências legais.
 
         private async Task<string> BuscarDesempenho(int usuarioId)
         {
-            var simulados = await _simuladoAplicacao.Listar5(usuarioId);
+            var simulados = await _simuladoAplicacao.Listar(usuarioId);
             if (!simulados.Any()) return "O aluno não possui simulados concluídos.";
 
             var notas = simulados.Select(s => new
@@ -234,7 +240,7 @@ armamentos/explosivos. Reforce sempre que isso pode gerar consequências legais.
 
         private async Task<string> BuscarPontosFracos(int usuarioId, string args)
         {
-            var simList = await _simuladoAplicacao.Listar5(usuarioId);
+            var simList = await _simuladoAplicacao.Listar(usuarioId);
             if (!simList.Any()) return "O aluno não tem simulados suficientes.";
 
             var dictHabilidades = new Dictionary<string, int>();
@@ -259,7 +265,7 @@ armamentos/explosivos. Reforce sempre que isso pode gerar consequências legais.
 
         private async Task<string> RevisarQuestoesErradas(int usuarioId, string args)
         {
-            var sims = await _simuladoAplicacao.Listar5(usuarioId);
+            var sims = await _simuladoAplicacao.Listar(usuarioId);
             var erradas = new List<object>();
 
             foreach (var s in sims)

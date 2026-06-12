@@ -20,7 +20,9 @@ namespace Learnly.Application.Validators
 
             RuleFor(x => x.DataFim)
                 .NotEmpty().WithMessage("A data de fim é obrigatória.")
-                .GreaterThan(x => x.DataInicio).WithMessage("A data de fim deve ser posterior à data de início.");
+                .GreaterThan(x => x.DataInicio).WithMessage("A data de fim deve ser posterior à data de início.")
+                .Must((plano, dataFim) => (dataFim - plano.DataInicio).TotalDays >= 14)
+                .WithMessage("O plano deve ter no mínimo 2 semanas de duração.");
 
             RuleFor(x => x.HorasPorSemana)
                 .GreaterThanOrEqualTo(0).WithMessage("As horas por semana não podem ser negativas.")

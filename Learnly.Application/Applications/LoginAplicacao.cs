@@ -40,6 +40,7 @@ namespace Learnly.Application.Applications
                 new Claim("id", id.ToString()),
                 new Claim("email", email),
                 new Claim("nome", nome),
+                new Claim("tipo", "access"),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };
 
@@ -60,13 +61,14 @@ namespace Learnly.Application.Applications
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
-        public string GenerateToken(int id, string email, string nome, TimeSpan expiracao)
+        public string GenerateToken(int id, string email, string nome, TimeSpan expiracao, bool refreshToken = false)
         {
             var claims = new[]
             {
                 new Claim("id", id.ToString()),
                 new Claim("email", email),
                 new Claim("nome", nome),
+                new Claim("tipo", refreshToken ? "refresh" : "access"),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };
 
@@ -93,7 +95,7 @@ namespace Learnly.Application.Applications
                 ValidateIssuer = true,
                 ValidateAudience = true,
                 ValidateIssuerSigningKey = true,
-                ValidateLifetime = false,
+                ValidateLifetime = true,
                 ValidIssuer = _configuration["jwt:issuer"],
                 ValidAudience = _configuration["jwt:audience"],
                 IssuerSigningKey = new SymmetricSecurityKey(

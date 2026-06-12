@@ -76,9 +76,9 @@ namespace Learnly.API.Controllers
         public async Task<IActionResult> Atualizar([FromBody] PlanoEstudo plano)
         {
             if (plano.UsuarioId != GetUserId()) return Forbid();
-            
+
             await _planoAplicacao.Atualizar(plano);
-            
+
             return NoContent();
         }
 
@@ -103,7 +103,7 @@ namespace Learnly.API.Controllers
         [HttpPut("lancar-horas")]
         public async Task<IActionResult> LancarHoras([FromQuery] int planoMateriaId, [FromQuery] int horas)
         {
-            if( GetUserId() == null) return Forbid();
+            if (GetUserId() == null) return Forbid();
             await _planoAplicacao.LancarHoras(planoMateriaId, horas);
             return NoContent();
         }

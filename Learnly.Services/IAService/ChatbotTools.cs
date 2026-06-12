@@ -128,6 +128,26 @@ namespace Learnly.Services.IAService
                         }
                     }
                 },
+                new Tool
+                {
+                    type = "function",
+                    function = new ToolFunction
+                    {
+                        name = "criar_eventos_estudo",
+                        description = "Cria novos eventos de estudo para o aluno.",
+                        parameters = new
+                        {
+                            type = "object",
+                            properties = new
+                            {
+                                nome = new { type = "string", description = "Título do evento de estudo." },
+                                inicio = new { type = "string", description = "Data e hora de início do evento (formato ISO 8601)." },
+                                fim = new { type = "string", description = "Data e hora de término do evento (formato ISO 8601)." },
+                                emLote = new { type = "boolean", description = "Indica se a criação dos eventos deve ser feita em lote. Se true, o Mentor pode criar vários eventos de uma vez para organizar a semana do aluno. Caso contrário, apenas um evento será criado." }
+                            }
+                        }
+                    }
+                },
             };
         }
     }
