@@ -8,6 +8,7 @@ using Learnly.Application.Interfaces;
 using Learnly.Services.BuscaService;
 using Learnly.Services.IAService;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
@@ -223,6 +224,13 @@ var app = builder.Build();
 
 #region Pipeline
 
+// atrás do proxy do Render, o IP real do cliente vem em X-Forwarded-For;
+// sem isso o rate limit por IP enxergaria um único IP (o do proxy) para todos
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+});
+
 app.UseSerilogRequestLogging();
 
 #region Security headers
@@ -243,8 +251,6 @@ app.Use(async (context, next) =>
 
 app.UseCors("AllowReact");
 
-app.UseRateLimiter();
-
 app.UseMiddleware<Learnly.Api.Middlewares.ExceptionMiddleware>();
 
 if (app.Environment.IsDevelopment())
@@ -257,6 +263,9 @@ app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+// depois do UseAuthentication para as partições por usuário enxergarem as claims
+app.UseRateLimiter();
 
 app.MapControllers().RequireRateLimiting("geral");
 #endregion
