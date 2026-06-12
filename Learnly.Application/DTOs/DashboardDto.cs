@@ -13,6 +13,7 @@ namespace Learnly.Application.DTOs
 
         public ProgressoPlanoDto ProgressoPlano { get; set; } = new();
         public List<HorasDiaDto> HorasPorDia { get; set; } = new();
+        public List<HorasDiaDto> MapaCalor { get; set; } = new();
         public List<DisciplinaDesempenhoDto> DesempenhoPorDisciplina { get; set; } = new();
         public List<EvolucaoSimuladoDto> EvolucaoSimulados { get; set; } = new();
         public List<MateriaProgressoDto> ProgressoPorMateria { get; set; } = new();

@@ -38,19 +38,22 @@ namespace Learnly.Application.Applications
             var inicioSemanaPassada = hoje.AddDays(-13);
             var fimSemanaPassada = hoje.AddDays(-7);
 
-            var lancamentos = await _horaLancadaRepositorio.ListarPeriodoAsync(usuarioId, inicioSemana, hoje);
+            var inicioMapa = hoje.AddDays(-27);
+            var lancamentos = await _horaLancadaRepositorio.ListarPeriodoAsync(usuarioId, inicioMapa, hoje);
 
-            var horasPorDia = new List<HorasDiaDto>();
-            for (var i = 6; i >= 0; i--)
+            var mapaCalor = new List<HorasDiaDto>();
+            for (var i = 27; i >= 0; i--)
             {
                 var dia = hoje.AddDays(-i);
-                horasPorDia.Add(new HorasDiaDto
+                mapaCalor.Add(new HorasDiaDto
                 {
                     Data = dia,
                     Dia = NomesDias[(int)dia.DayOfWeek],
                     Horas = lancamentos.Where(l => l.Data.Date == dia).Sum(l => l.QuantdadeHoras)
                 });
             }
+
+            var horasPorDia = mapaCalor.Skip(21).ToList();
 
             var horasSemana = horasPorDia.Sum(h => h.Horas);
             var horasSemanaPassada = await _horaLancadaRepositorio.SomarHorasPeriodoAsync(usuarioId, inicioSemanaPassada, fimSemanaPassada);
@@ -128,6 +131,7 @@ namespace Learnly.Application.Applications
                 MetaHorasSemana = metaHorasSemana,
                 ProgressoPlano = progressoPlano,
                 HorasPorDia = horasPorDia,
+                MapaCalor = mapaCalor,
                 DesempenhoPorDisciplina = desempenhoPorDisciplina,
                 EvolucaoSimulados = evolucao,
                 ProgressoPorMateria = progressoPorMateria
