@@ -19,7 +19,8 @@ public class LearnlyContextoFactory : IDesignTimeDbContextFactory<LearnlyContext
 
         var configuration = new ConfigurationBuilder()
             .SetBasePath(basePath)
-            .AddJsonFile("appsettings.json", optional: false)
+            .AddJsonFile("appsettings.json", optional: true)
+            .AddUserSecrets("1a7d4dec-1037-4cb6-8caf-302fe91ab02d")
             .AddEnvironmentVariables()
             .Build();
 
