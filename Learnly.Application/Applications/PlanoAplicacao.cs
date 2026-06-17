@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using FluentValidation;
 using Learnly.Application.DTOs;
 using Learnly.Application.Interfaces;
@@ -259,6 +260,138 @@ namespace Learnly.Application.Applications
         public async Task<PlanoEstudo> ObterPlanoAtivoComTracking(int usuarioId)
         {
             return await _planoRepositorio.ObterPlanoAtivoComTracking(usuarioId);
+        }
+
+        public async Task<GrupoEstudo> Compartilhar(int planoId, int usuarioId)
+        {
+            var plano = await _planoRepositorio.ObterPlanoPorId(planoId)
+                ?? throw new PlanoNaoEncontradoException(planoId);
+
+            if (plano.UsuarioId != usuarioId)
+                throw new PlanoNaoEncontradoException(planoId);
+
+            if (plano.GrupoId != null)
+            {
+                var grupoExistente = await _planoRepositorio.ObterGrupoPorId(plano.GrupoId.Value);
+                if (grupoExistente != null)
+                    return grupoExistente;
+            }
+
+            var grupo = new GrupoEstudo
+            {
+                Chave = await GerarChaveUnica(),
+                CriadorId = usuarioId
+            };
+
+            await _planoRepositorio.CriarGrupo(grupo);
+
+            plano.GrupoId = grupo.GrupoId;
+            await _planoRepositorio.Atualizar(new List<PlanoEstudo> { plano });
+
+            return grupo;
+        }
+
+        public async Task<PlanoEstudo> Resgatar(string chave, int usuarioId)
+        {
+            var grupo = await _planoRepositorio.ObterGrupoPorChave(chave?.Trim().ToUpperInvariant())
+                ?? throw new ChaveCompartilhamentoInvalidaException();
+
+            if (grupo.CriadorId == usuarioId)
+                throw new PlanoJaResgatadoException();
+
+            var jaResgatado = await _planoRepositorio.ObterPlanoDoGrupoPorUsuario(grupo.GrupoId, usuarioId);
+            if (jaResgatado != null)
+                throw new PlanoJaResgatadoException();
+
+            var totalPlanosUsuario = await _planoRepositorio.ContarPorUsuario(usuarioId);
+            if (totalPlanosUsuario >= 5)
+                throw new LimitePlanosAtingidoException();
+
+            var modelo = await _planoRepositorio.ObterPlanoDoGrupoPorUsuario(grupo.GrupoId, grupo.CriadorId)
+                ?? throw new PlanoNaoEncontradoException();
+
+            var clone = new PlanoEstudo
+            {
+                Titulo = modelo.Titulo,
+                Objetivo = modelo.Objetivo,
+                DataInicio = modelo.DataInicio,
+                DataFim = modelo.DataFim,
+                HorasPorSemana = modelo.HorasPorSemana,
+                UsuarioId = usuarioId,
+                Ativo = false,
+                GrupoId = grupo.GrupoId,
+                PlanoMaterias = modelo.PlanoMaterias.Select(pm => new PlanoMateria
+                {
+                    MateriaId = pm.MateriaId,
+                    HorasTotais = pm.HorasTotais,
+                    Topicos = pm.Topicos?.ToList(),
+                    HorasConcluidas = 0
+                }).ToList()
+            };
+
+            await _planoRepositorio.Criar(clone);
+            return clone;
+        }
+
+        public async Task<GrupoProgressoDto> ObterGrupo(int grupoId, int usuarioId)
+        {
+            var planos = await _planoRepositorio.ListarPlanosDoGrupo(grupoId);
+
+            if (!planos.Any(p => p.UsuarioId == usuarioId))
+                throw new PlanoNaoEncontradoException();
+
+            var grupo = await _planoRepositorio.ObterGrupoPorId(grupoId)
+                ?? throw new PlanoNaoEncontradoException();
+
+            var membros = planos
+                .Select(p =>
+                {
+                    var horasTotais = p.PlanoMaterias.Sum(pm => pm.HorasTotais);
+                    var horasConcluidas = p.PlanoMaterias.Sum(pm => pm.HorasConcluidas);
+
+                    return new MembroProgressoDto
+                    {
+                        UsuarioId = p.UsuarioId,
+                        Nome = p.Usuario?.Nome,
+                        HorasTotais = horasTotais,
+                        HorasConcluidas = horasConcluidas,
+                        Percentual = horasTotais > 0
+                            ? Math.Round((double)horasConcluidas / horasTotais * 100, 1)
+                            : 0,
+                        Eu = p.UsuarioId == usuarioId
+                    };
+                })
+                .OrderByDescending(m => m.Percentual)
+                .ToList();
+
+            return new GrupoProgressoDto
+            {
+                GrupoId = grupo.GrupoId,
+                Chave = grupo.CriadorId == usuarioId ? grupo.Chave : null,
+                Membros = membros
+            };
+        }
+
+        private async Task<string> GerarChaveUnica()
+        {
+            string chave;
+            do
+            {
+                chave = GerarChave();
+            } while (await _planoRepositorio.ChaveExiste(chave));
+
+            return chave;
+        }
+
+        private static string GerarChave()
+        {
+            const string alfabeto = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+            var caracteres = new char[8];
+
+            for (int i = 0; i < caracteres.Length; i++)
+                caracteres[i] = alfabeto[RandomNumberGenerator.GetInt32(alfabeto.Length)];
+
+            return new string(caracteres);
         }
     }
 }

@@ -20,5 +20,8 @@ namespace Learnly.Application.Interfaces
         Task Excluir(int planoId);
         Task<PlanoEstudo> ObterPlanoAtivo(int usuarioId);
         Task<PlanoEstudo> ObterPlanoAtivoComTracking(int usuarioId);
+        Task<GrupoEstudo> Compartilhar(int planoId, int usuarioId);
+        Task<PlanoEstudo> Resgatar(string chave, int usuarioId);
+        Task<GrupoProgressoDto> ObterGrupo(int grupoId, int usuarioId);
     }
 }

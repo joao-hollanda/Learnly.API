@@ -141,5 +141,35 @@ namespace Learnly.API.Controllers
             var plano = await _planoAplicacao.ObterPlanoAtivo(usuarioId.Value);
             return Success(plano);
         }
+
+        [HttpPost("{planoId}/compartilhar")]
+        public async Task<IActionResult> Compartilhar(int planoId)
+        {
+            var usuarioId = GetUserId();
+            if (usuarioId == null) return Unauthorized();
+
+            var grupo = await _planoAplicacao.Compartilhar(planoId, usuarioId.Value);
+            return Success(new { chave = grupo.Chave, grupoId = grupo.GrupoId });
+        }
+
+        [HttpPost("resgatar")]
+        public async Task<IActionResult> Resgatar([FromBody] ResgatarPlanoDTO request)
+        {
+            var usuarioId = GetUserId();
+            if (usuarioId == null) return Unauthorized();
+
+            var plano = await _planoAplicacao.Resgatar(request.Chave, usuarioId.Value);
+            return Success(plano);
+        }
+
+        [HttpGet("grupo/{grupoId}")]
+        public async Task<IActionResult> ObterGrupo(int grupoId)
+        {
+            var usuarioId = GetUserId();
+            if (usuarioId == null) return Unauthorized();
+
+            var grupo = await _planoAplicacao.ObterGrupo(grupoId, usuarioId.Value);
+            return Success(grupo);
+        }
     }
 }

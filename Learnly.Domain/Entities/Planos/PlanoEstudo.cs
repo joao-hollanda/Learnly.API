@@ -21,6 +21,10 @@ namespace Learnly.Domain.Entities
         public Usuario Usuario { get; set; }
         public ICollection<PlanoMateria> PlanoMaterias { get; set; }
 
+        public int? GrupoId { get; set; }
+        [JsonIgnore]
+        public GrupoEstudo Grupo { get; set; }
+
         public PlanoEstudo()
         {
             Ativo = true;

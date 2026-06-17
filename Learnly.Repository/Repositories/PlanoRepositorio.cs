@@ -105,5 +105,44 @@ namespace Learnly.Repository
                     p.Ativo
                 );
         }
+
+        public async Task CriarGrupo(GrupoEstudo grupo)
+        {
+            await _contexto.GruposEstudo.AddAsync(grupo);
+            await _contexto.SaveChangesAsync();
+        }
+
+        public async Task<bool> ChaveExiste(string chave)
+        {
+            return await _contexto.GruposEstudo.AnyAsync(g => g.Chave == chave);
+        }
+
+        public async Task<GrupoEstudo?> ObterGrupoPorChave(string chave)
+        {
+            return await _contexto.GruposEstudo
+                .FirstOrDefaultAsync(g => g.Chave == chave);
+        }
+
+        public async Task<GrupoEstudo?> ObterGrupoPorId(int grupoId)
+        {
+            return await _contexto.GruposEstudo
+                .FirstOrDefaultAsync(g => g.GrupoId == grupoId);
+        }
+
+        public async Task<PlanoEstudo?> ObterPlanoDoGrupoPorUsuario(int grupoId, int usuarioId)
+        {
+            return await _contexto.PlanosEstudo
+                .Include(p => p.PlanoMaterias)
+                .FirstOrDefaultAsync(p => p.GrupoId == grupoId && p.UsuarioId == usuarioId);
+        }
+
+        public async Task<List<PlanoEstudo>> ListarPlanosDoGrupo(int grupoId)
+        {
+            return await _contexto.PlanosEstudo
+                .Include(p => p.PlanoMaterias)
+                .Include(p => p.Usuario)
+                .Where(p => p.GrupoId == grupoId)
+                .ToListAsync();
+        }
     }
 }

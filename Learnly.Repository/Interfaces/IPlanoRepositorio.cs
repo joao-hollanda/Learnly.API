@@ -17,5 +17,11 @@ namespace Learnly.Repository.Interfaces
         Task<int> ContarPorUsuario(int usuarioId);
         Task<PlanoEstudo> ObterPlanoAtivo(int usuarioId);
         Task<PlanoEstudo?> ObterPlanoAtivoComTracking(int usuarioId);
+        Task CriarGrupo(GrupoEstudo grupo);
+        Task<bool> ChaveExiste(string chave);
+        Task<GrupoEstudo?> ObterGrupoPorChave(string chave);
+        Task<GrupoEstudo?> ObterGrupoPorId(int grupoId);
+        Task<PlanoEstudo?> ObterPlanoDoGrupoPorUsuario(int grupoId, int usuarioId);
+        Task<List<PlanoEstudo>> ListarPlanosDoGrupo(int grupoId);
     }
 }

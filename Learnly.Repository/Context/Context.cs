@@ -12,6 +12,7 @@ public class LearnlyContexto : DbContext
     public DbSet<PlanoEstudo> PlanosEstudo { get; set; }
     public DbSet<Materia> Materias { get; set; }
     public DbSet<PlanoMateria> PlanoMateria { get; set; }
+    public DbSet<GrupoEstudo> GruposEstudo { get; set; }
     public DbSet<HoraLancada> HorasLancadas { get; set; }
     public DbSet<EventoEstudo> EventosEstudo { get; set; }
     public DbSet<Usuario> Usuarios { get; set; }
@@ -38,6 +39,7 @@ public class LearnlyContexto : DbContext
         modelBuilder.ApplyConfiguration(new PlanoEstudoConfig());
         modelBuilder.ApplyConfiguration(new MateriaConfig());
         modelBuilder.ApplyConfiguration(new PlanoMateriaConfig());
+        modelBuilder.ApplyConfiguration(new GrupoEstudoConfig());
         modelBuilder.ApplyConfiguration(new EventoEstudoConfig());
         modelBuilder.ApplyConfiguration(new HoraLancadaConfig());
 

@@ -71,6 +71,8 @@ namespace Learnly.Api.Middlewares
                 MateriaNaoEncontradaException e => (HttpStatusCode.NotFound, e.Message),
                 MateriaDoPlanoNaoEncontradaException e => (HttpStatusCode.NotFound, e.Message),
                 HorasExcedemTotalException e => (HttpStatusCode.BadRequest, e.Message),
+                ChaveCompartilhamentoInvalidaException e => (HttpStatusCode.NotFound, e.Message),
+                PlanoJaResgatadoException e => (HttpStatusCode.Conflict, e.Message),
 
                 SimuladoNaoEncontradoException e => (HttpStatusCode.NotFound, e.Message),
                 SimuladoNaoAutorizadoException e => (HttpStatusCode.Forbidden, e.Message),
