@@ -3,6 +3,7 @@ using System.Text;
 using System.Threading.RateLimiting;
 using FluentValidation;
 using FluentValidation.AspNetCore;
+using Learnly.Api.Hubs;
 using Learnly.Application.Extensions;
 using Learnly.Application.Interfaces;
 using Learnly.Services.BuscaService;
@@ -97,6 +98,15 @@ builder.Services.AddAuthentication(options =>
                     context.Token = token;
                 }
             }
+
+            // WebSocket do navegador não envia header Authorization; o SignalR manda o token via query string
+            var accessToken = context.Request.Query["access_token"];
+            if (!string.IsNullOrEmpty(accessToken) &&
+                context.HttpContext.Request.Path.StartsWithSegments("/hubs"))
+            {
+                context.Token = accessToken;
+            }
+
             return Task.CompletedTask;
         },
         OnTokenValidated = context =>
@@ -172,6 +182,7 @@ builder.Services.AddValidatorsFromAssemblyContaining<Learnly.Application.Validat
 
 #region Controllers
 builder.Services.AddControllers();
+builder.Services.AddSignalR();
 #endregion
 
 #region Rate Limiting 
@@ -268,6 +279,7 @@ app.UseAuthorization();
 app.UseRateLimiter();
 
 app.MapControllers().RequireRateLimiting("geral");
+app.MapHub<ChatHub>("/hubs/chat");
 #endregion
 
 app.Run();

@@ -6,6 +6,7 @@ using Learnly.Domain.Exceptions.Comuns;
 using Learnly.Domain.Exceptions.Eventos;
 using Learnly.Domain.Exceptions.Planos;
 using Learnly.Domain.Exceptions.Simulados;
+using Learnly.Domain.Exceptions.Social;
 using Learnly.Domain.Exceptions.Usuarios;
 
 namespace Learnly.Api.Middlewares
@@ -82,6 +83,13 @@ namespace Learnly.Api.Middlewares
 
                 EventoNaoEncontradoException e => (HttpStatusCode.NotFound, e.Message),
                 EventoDataInvalidaException e => (HttpStatusCode.BadRequest, e.Message),
+
+                AmizadeNaoEncontradaException e => (HttpStatusCode.NotFound, e.Message),
+                GrupoNaoEncontradoException e => (HttpStatusCode.NotFound, e.Message),
+                ChaveGrupoInvalidaException e => (HttpStatusCode.NotFound, e.Message),
+                ConversaNaoEncontradaException e => (HttpStatusCode.NotFound, e.Message),
+                NaoMembroDoGrupoException e => (HttpStatusCode.Forbidden, e.Message),
+                AcessoConversaNegadoException e => (HttpStatusCode.Forbidden, e.Message),
 
                 NaoEncontradoException e => (HttpStatusCode.NotFound, e.Message),
                 RegraDeNegocioException e => (HttpStatusCode.UnprocessableEntity, e.Message),

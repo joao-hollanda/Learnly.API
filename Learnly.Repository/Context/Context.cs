@@ -4,7 +4,9 @@ using Learnly.Domain.Entities.Simulados;
 using Learnly.Repository.Config;
 using Learnly.Infra.Data.Configurations;
 using Learnly.Repository.Config.Simulados;
+using Learnly.Repository.Config.Social;
 using Learnly.Domain.Entities.Planos;
+using Learnly.Domain.Entities.Social;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 public class LearnlyContexto : DbContext
@@ -21,6 +23,13 @@ public class LearnlyContexto : DbContext
     public DbSet<SimuladoQuestao> SimuladoQuestoes { get; set; }
     public DbSet<RespostaSimulado> RespostasSimulado { get; set; }
     public DbSet<Alternativa> Alternativas { get; set; }
+
+    public DbSet<Amizade> Amizades { get; set; }
+    public DbSet<Grupo> Grupos { get; set; }
+    public DbSet<GrupoMembro> GrupoMembros { get; set; }
+    public DbSet<Conversa> Conversas { get; set; }
+    public DbSet<ConversaParticipante> ConversaParticipantes { get; set; }
+    public DbSet<Mensagem> Mensagens { get; set; }
 
 
     public LearnlyContexto(DbContextOptions<LearnlyContexto> options)
@@ -42,6 +51,12 @@ public class LearnlyContexto : DbContext
         modelBuilder.ApplyConfiguration(new GrupoEstudoConfig());
         modelBuilder.ApplyConfiguration(new EventoEstudoConfig());
         modelBuilder.ApplyConfiguration(new HoraLancadaConfig());
+        modelBuilder.ApplyConfiguration(new AmizadeConfig());
+        modelBuilder.ApplyConfiguration(new GrupoConfig());
+        modelBuilder.ApplyConfiguration(new GrupoMembroConfig());
+        modelBuilder.ApplyConfiguration(new ConversaConfig());
+        modelBuilder.ApplyConfiguration(new ConversaParticipanteConfig());
+        modelBuilder.ApplyConfiguration(new MensagemConfig());
 
         foreach (var entityType in modelBuilder.Model.GetEntityTypes())
         {

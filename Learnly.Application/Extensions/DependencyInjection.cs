@@ -26,6 +26,10 @@ namespace Learnly.Application.Extensions
             services.AddScoped<IIAService, IAService>();
             services.AddScoped<IIAAplicacao, IAAplicacao>();
 
+            services.AddScoped<IAmizadeAplicacao, AmizadeAplicacao>();
+            services.AddScoped<IGrupoAplicacao, GrupoAplicacao>();
+            services.AddScoped<IChatAplicacao, ChatAplicacao>();
+
             return services;
         }
 
@@ -37,6 +41,9 @@ namespace Learnly.Application.Extensions
             services.AddScoped<IMateriaRepositorio, MateriaRepositorio>();
             services.AddScoped<IHoraLancadaRepositorio, HoraLancadaRepositorio>();
             services.AddScoped<IEventoEstudoRepositorio, EventoEstudoRepositorio>();
+            services.AddScoped<IAmizadeRepositorio, AmizadeRepositorio>();
+            services.AddScoped<IGrupoRepositorio, GrupoRepositorio>();
+            services.AddScoped<IChatRepositorio, ChatRepositorio>();
 
             services.AddDbContext<LearnlyContexto>(options =>
                 options.UseNpgsql(
