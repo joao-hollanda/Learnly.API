@@ -54,6 +54,26 @@ namespace Learnly.Api.Controllers
             return Success();
         }
 
+        [HttpPut("Foto")]
+        public async Task<IActionResult> AtualizarFoto([FromBody] UsuarioAtualizarFoto dto)
+        {
+            var usuarioId = GetUserId();
+            if (usuarioId == null) return Unauthorized();
+
+            await _usuarioAplicacao.AtualizarFoto((int)usuarioId, dto.Foto);
+            return Success();
+        }
+
+        [HttpPut("Senha")]
+        public async Task<IActionResult> AtualizarSenha([FromBody] UsuarioAtualizarSenha senha)
+        {
+            var usuarioId = GetUserId();
+            if (usuarioId == null) return Unauthorized();
+
+            await _usuarioAplicacao.AtualizarSenha((int)usuarioId, senha.SenhaAntiga, senha.Senha);
+            return Success();
+        }
+
         [HttpPut("Reativar/{usuarioId}")]
         public async Task<IActionResult> Reativar([FromRoute] int usuarioId)
         {

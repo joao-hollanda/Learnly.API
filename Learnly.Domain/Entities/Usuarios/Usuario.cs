@@ -6,8 +6,10 @@ namespace Learnly.Domain.Entities
         public string Nome { get; set; }
         public string Email { get; set; }
         public string Senha { get; set; }
+        public string Foto { get; set; }
         public DateOnly DataCriacao { get; set; }
         public bool StatusConta { get; set; }
+        public bool EmailConfirmado { get; set; }
         public List<PlanoEstudo> PlanoEstudo { get; set; }
 
         public List<Simulado> Simulados { get; set; }

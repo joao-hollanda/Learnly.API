@@ -88,6 +88,30 @@ namespace Learnly.Application.Applications
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
+        public string GerarTokenAcao(int id, string email, string tipo, TimeSpan validade)
+        {
+            var claims = new[]
+            {
+                new Claim("id", id.ToString()),
+                new Claim("email", email),
+                new Claim("tipo", tipo),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+            };
+
+            var privateKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["jwt:secretKey"]));
+            var credenciais = new SigningCredentials(privateKey, SecurityAlgorithms.HmacSha256);
+
+            var token = new JwtSecurityToken(
+                issuer: _configuration["jwt:issuer"],
+                audience: _configuration["jwt:audience"],
+                claims: claims,
+                expires: DateTime.UtcNow.Add(validade),
+                signingCredentials: credenciais
+            );
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+
         public ClaimsPrincipal? ValidarToken(string token)
         {
             var parametros = new TokenValidationParameters

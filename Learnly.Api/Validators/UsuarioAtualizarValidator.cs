@@ -15,9 +15,6 @@ namespace Learnly.Api.Validators
                 .NotEmpty().WithMessage("O e-mail é obrigatório.")
                 .EmailAddress().WithMessage("Informe um e-mail válido.")
                 .MaximumLength(150).WithMessage("O e-mail deve ter no máximo 150 caracteres.");
-
-            RuleFor(x => x.Cidade)
-                .MaximumLength(100).WithMessage("A cidade deve ter no máximo 100 caracteres.");
         }
     }
 }

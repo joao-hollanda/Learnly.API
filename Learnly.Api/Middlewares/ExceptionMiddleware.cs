@@ -66,6 +66,7 @@ namespace Learnly.Api.Middlewares
                 EmailJaCadastradoException e => (HttpStatusCode.Conflict, e.Message),
                 SenhaInvalidaException e => (HttpStatusCode.BadRequest, e.Message),
                 UsuarioInativoException e => (HttpStatusCode.Forbidden, e.Message),
+                EmailNaoConfirmadoException e => (HttpStatusCode.Forbidden, e.Message),
 
                 PlanoNaoEncontradoException e => (HttpStatusCode.NotFound, e.Message),
                 LimitePlanosAtingidoException e => (HttpStatusCode.UnprocessableEntity, e.Message),

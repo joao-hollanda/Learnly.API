@@ -1,8 +1,10 @@
 using FluentValidation;
 using Learnly.Application.Interfaces;
 using Learnly.Domain.Entities;
+using Learnly.Domain.Exceptions.Autenticacao;
 using Learnly.Domain.Exceptions.Usuarios;
 using Learnly.Repository.Interfaces;
+using Microsoft.Extensions.Configuration;
 
 namespace Learnly.Application.Applications
 {
@@ -10,11 +12,25 @@ namespace Learnly.Application.Applications
     {
         readonly IUsuarioRepositorio _usuarioRepositorio;
         readonly IValidator<Usuario> _validator;
+        readonly IEmailService _emailService;
+        readonly ILoginAplicacao _loginAplicacao;
+        readonly IConfiguration _configuration;
 
-        public UsuarioAplicacao(IUsuarioRepositorio usuarioRepositorio, IValidator<Usuario> validator)
+        private static readonly TimeSpan ValidadeConfirmacao = TimeSpan.FromHours(24);
+        private static readonly TimeSpan ValidadeReset = TimeSpan.FromMinutes(30);
+
+        public UsuarioAplicacao(
+            IUsuarioRepositorio usuarioRepositorio,
+            IValidator<Usuario> validator,
+            IEmailService emailService,
+            ILoginAplicacao loginAplicacao,
+            IConfiguration configuration)
         {
             _usuarioRepositorio = usuarioRepositorio;
             _validator = validator;
+            _emailService = emailService;
+            _loginAplicacao = loginAplicacao;
+            _configuration = configuration;
         }
 
         public async Task<int> Criar(Usuario usuario)
@@ -28,14 +44,103 @@ namespace Learnly.Application.Applications
                 opts.ThrowOnFailures();
             });
 
-            var user = await _usuarioRepositorio.ObterPorEmail(usuario.Email);
-            if (user != null)
+            if (await _usuarioRepositorio.EmailEmUso(usuario.Email))
                 throw new EmailJaCadastradoException(usuario.Email);
 
             usuario.Senha = BCrypt.Net.BCrypt.HashPassword(usuario.Senha, 12);
+            usuario.EmailConfirmado = false;
 
-            return await _usuarioRepositorio.Criar(usuario);
+            usuario.Id = await _usuarioRepositorio.Criar(usuario);
+
+            await EnviarEmailConfirmacao(usuario);
+
+            return usuario.Id;
         }
+
+        public async Task<Usuario> ConfirmarEmail(string token)
+        {
+            var principal = _loginAplicacao.ValidarToken(token);
+            if (principal == null || principal.FindFirst("tipo")?.Value != "confirmacao")
+                throw new TokenInvalidoException();
+
+            if (!int.TryParse(principal.FindFirst("id")?.Value, out var id))
+                throw new TokenInvalidoException();
+
+            var usuario = await _usuarioRepositorio.Obter(id, true);
+            if (usuario == null)
+                throw new TokenInvalidoException();
+
+            if (usuario.EmailConfirmado)
+                return usuario;
+
+            usuario.EmailConfirmado = true;
+            await _usuarioRepositorio.Atualizar(usuario);
+
+            return usuario;
+        }
+
+        public async Task ReenviarConfirmacao(string email)
+        {
+            var usuario = await _usuarioRepositorio.ObterPorEmail(email);
+            if (usuario == null || usuario.EmailConfirmado)
+                return;
+
+            await EnviarEmailConfirmacao(usuario);
+        }
+
+        public async Task SolicitarRecuperacaoSenha(string email)
+        {
+            var usuario = await _usuarioRepositorio.ObterPorEmail(email);
+            if (usuario == null)
+                return;
+
+            var token = _loginAplicacao.GerarTokenAcao(usuario.Id, usuario.Email, "reset", ValidadeReset);
+            var link = $"{FrontendUrl()}/redefinir-senha?token={Uri.EscapeDataString(token)}";
+
+            try
+            {
+                await _emailService.EnviarRecuperacaoSenhaAsync(usuario.Email, usuario.Nome, link);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[EmailService] Falha ao enviar e-mail de recuperação para {usuario.Email}: {ex.Message}");
+            }
+        }
+
+        public async Task RedefinirSenha(string token, string novaSenha)
+        {
+            var principal = _loginAplicacao.ValidarToken(token);
+            if (principal == null || principal.FindFirst("tipo")?.Value != "reset")
+                throw new TokenInvalidoException();
+
+            if (!int.TryParse(principal.FindFirst("id")?.Value, out var id))
+                throw new TokenInvalidoException();
+
+            var usuario = await _usuarioRepositorio.Obter(id, true);
+            if (usuario == null)
+                throw new TokenInvalidoException();
+
+            usuario.Senha = BCrypt.Net.BCrypt.HashPassword(novaSenha, 12);
+            await _usuarioRepositorio.Atualizar(usuario);
+        }
+
+        private async Task EnviarEmailConfirmacao(Usuario usuario)
+        {
+            var token = _loginAplicacao.GerarTokenAcao(usuario.Id, usuario.Email, "confirmacao", ValidadeConfirmacao);
+            var link = $"{FrontendUrl()}/confirmar-email?token={Uri.EscapeDataString(token)}";
+
+            try
+            {
+                await _emailService.EnviarConfirmacaoAsync(usuario.Email, usuario.Nome, link);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[EmailService] Falha ao enviar e-mail de confirmação para {usuario.Email}: {ex.Message}");
+            }
+        }
+
+        private string FrontendUrl() =>
+            (_configuration["Email:FrontendUrl"] ?? "https://www.learnly.com.br").TrimEnd('/');
 
         public async Task Atualizar(Usuario usuario)
         {
@@ -48,8 +153,7 @@ namespace Learnly.Application.Applications
 
             if (usuarioDominio.Email != usuario.Email)
             {
-                var usuarioComEmail = await _usuarioRepositorio.ObterPorEmail(usuario.Email);
-                if (usuarioComEmail != null && usuarioComEmail.Id != usuario.Id)
+                if (await _usuarioRepositorio.EmailEmUso(usuario.Email, usuario.Id))
                     throw new EmailJaCadastradoException(usuario.Email);
             }
 
@@ -59,26 +163,32 @@ namespace Learnly.Application.Applications
             await _usuarioRepositorio.Atualizar(usuarioDominio);
         }
 
-        // public async Task AlterarSenha(int usuarioId, string senhaAntiga, string novaSenha)
-        // {
-        //     var usuarioDominio = await _usuarioRepositorio.Obter(usuarioId, true);
+        public async Task AtualizarFoto(int usuarioId, string foto)
+        {
+            var usuarioDominio = await _usuarioRepositorio.Obter(usuarioId, true);
 
-        //     if (usuarioDominio == null)
-        //         throw new Exception("Usuario não encontrado!");
+            if (usuarioDominio == null)
+                throw new UsuarioNaoEncontradoException(usuarioId);
 
-        //     if (!BCrypt.Net.BCrypt.Verify(senhaAntiga, usuarioDominio.Senha))
-        //         throw new Exception("Senha antiga incorreta!");
+            usuarioDominio.Foto = foto;
 
-        //     // Validação de senha com regex
-        //     const string senhaPattern = @"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9\s])[^\s]{8,}$";
-        //     if (!Regex.IsMatch(novaSenha, senhaPattern))
-        //         throw new Exception("Senha inválida! A senha deve ter no mínimo 8 caracteres, incluindo pelo menos uma letra minúscula, uma maiúscula, um número e um caractere especial.");
+            await _usuarioRepositorio.Atualizar(usuarioDominio);
+        }
 
-        //     usuarioDominio.Senha = BCrypt.Net.BCrypt.HashPassword(novaSenha, 12);
+        public async Task AtualizarSenha(int usuarioId, string senhaAntiga, string novaSenha)
+        {
+            var usuarioDominio = await _usuarioRepositorio.Obter(usuarioId, true);
 
-        //     await _usuarioRepositorio.Atualizar(usuarioDominio);
-        // }
+            if (usuarioDominio == null)
+                throw new UsuarioNaoEncontradoException(usuarioId);
 
+            if (!BCrypt.Net.BCrypt.Verify(senhaAntiga, usuarioDominio.Senha))
+                throw new SenhaInvalidaException("A senha atual está incorreta.");
+
+            usuarioDominio.Senha = BCrypt.Net.BCrypt.HashPassword(novaSenha, 12);
+
+            await _usuarioRepositorio.Atualizar(usuarioDominio);
+        }
 
         public async Task<Usuario> Obter(int usuarioId)
         {

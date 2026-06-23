@@ -8,10 +8,15 @@ namespace Learnly.Application.Interfaces
         Task<IEnumerable<Usuario>> Listar(bool ativo);
         Task<Usuario> Obter(int usuarioId);
         Task<Usuario> ObterPorEmail(string email);
-        // Task AlterarSenha(int usuarioId, string senhaAntiga, string novaSenha);
+        Task AtualizarSenha(int usuarioId, string senhaAntiga, string novaSenha);
+        Task AtualizarFoto(int usuarioId, string foto);
         Task Atualizar(Usuario usuarioDTO);
         Task Desativar(int usuarioId);
         Task Reativar(int usuarioId);
         Task Aquecer();
+        Task<Usuario> ConfirmarEmail(string token);
+        Task ReenviarConfirmacao(string email);
+        Task SolicitarRecuperacaoSenha(string email);
+        Task RedefinirSenha(string token, string novaSenha);
     }
 }

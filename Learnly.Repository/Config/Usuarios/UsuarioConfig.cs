@@ -23,6 +23,12 @@ namespace Learnly.Repository.Config
                      builder.Property(u => u.Senha)
                             .IsRequired();
 
+                     builder.Property(u => u.Foto);
+
+                     builder.Property(u => u.EmailConfirmado)
+                            .IsRequired()
+                            .HasDefaultValue(false);
+
                      builder.HasIndex(u => u.Email)
                             .IsUnique();
 

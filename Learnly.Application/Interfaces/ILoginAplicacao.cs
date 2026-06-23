@@ -12,6 +12,7 @@ namespace Learnly.Application.Interfaces
         bool ValidarLogin(Usuario usuario, string senha);
         public string GenerateToken(int id, string email, string nome);
         string GenerateToken(int id, string email, string nome, TimeSpan expiracao, bool refreshToken = false);
+        string GerarTokenAcao(int id, string email, string tipo, TimeSpan validade);
         ClaimsPrincipal? ValidarToken(string token);
     }
 }

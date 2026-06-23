@@ -7,6 +7,7 @@ using Learnly.Api.Hubs;
 using Learnly.Application.Extensions;
 using Learnly.Application.Interfaces;
 using Learnly.Services.BuscaService;
+using Learnly.Services.Email;
 using Learnly.Services.IAService;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.HttpOverrides;
@@ -43,6 +44,13 @@ builder.Services.AddSingleton(new BuscaOptions
     YouTubeKey = builder.Configuration["ApiKeys:YouTube"]
 });
 builder.Services.AddHttpClient<IBuscaMaterialService, BuscaMaterialService>();
+
+builder.Services.AddSingleton(new EmailOptions
+{
+    ApiKey = builder.Configuration["ApiKeys:Resend"],
+    From = builder.Configuration["Email:From"] ?? "Learnly <onboarding@resend.dev>"
+});
+builder.Services.AddHttpClient<IEmailService, EmailService>();
 #endregion
 
 #region CORS
@@ -116,9 +124,9 @@ builder.Services.AddAuthentication(options =>
         },
         OnTokenValidated = context =>
         {
-            // refresh token (mobile, 30 dias) não pode ser usado como access token
-            if (context.Principal?.FindFirst("tipo")?.Value == "refresh")
-                context.Fail("Refresh token não pode ser usado para autenticação");
+            // só tokens de acesso autenticam: refresh (mobile), reset de senha e confirmação de e-mail são rejeitados aqui
+            if (context.Principal?.FindFirst("tipo")?.Value != "access")
+                context.Fail("Este token não pode ser usado para autenticação");
             return Task.CompletedTask;
         },
         OnAuthenticationFailed = context =>

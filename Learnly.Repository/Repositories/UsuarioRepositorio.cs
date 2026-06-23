@@ -46,6 +46,12 @@ namespace Learnly.Repository
                 .FirstOrDefaultAsync();
         }
 
+        public async Task<bool> EmailEmUso(string email, int ignorarId = 0)
+        {
+            return await _contexto.Usuarios
+                .AnyAsync(u => u.Email == email && u.Id != ignorarId);
+        }
+
         public async Task<IEnumerable<Usuario>> Listar(bool ativo)
         {
             return await _contexto.Usuarios.Where(u => u.StatusConta == ativo).ToListAsync();

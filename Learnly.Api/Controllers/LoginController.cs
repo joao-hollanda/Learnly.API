@@ -1,6 +1,7 @@
 using Learnly.Api.Models.Usuarios.Request;
 using Learnly.Application.Interfaces;
 using Learnly.API.Controllers;
+using Learnly.Domain.Exceptions.Usuarios;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
@@ -26,20 +27,21 @@ namespace Learnly.Api.Controllers
 
         [HttpGet("user")]
         [Authorize]
-        public IActionResult GetUser()
+        public async Task<IActionResult> GetUser()
         {
-            var userId = User.FindFirst("id")?.Value;
-            var email = User.FindFirst("email")?.Value;
-            var nome = User.FindFirst("nome")?.Value;
+            var usuarioId = GetUserId();
+            if (usuarioId == null) return Unauthorized();
 
-            if (string.IsNullOrEmpty(userId))
-                return Unauthorized();
+            var usuario = await _usuarioAplicacao.Obter((int)usuarioId);
 
             return Success(new
             {
-                id = int.TryParse(userId, out var id) ? id : 0,
-                email,
-                nome
+                id = usuario.Id,
+                nome = usuario.Nome,
+                email = usuario.Email,
+                foto = usuario.Foto,
+                dataCriacao = usuario.DataCriacao,
+                emailConfirmado = usuario.EmailConfirmado
             });
         }
 
@@ -52,6 +54,9 @@ namespace Learnly.Api.Controllers
 
             if (!auth)
                 return Unauthorized("Usuário ou senha inválido");
+
+            if (!usuario.EmailConfirmado)
+                throw new EmailNaoConfirmadoException();
 
             var token = _loginAplicacao.GenerateToken(usuario.Id, usuario.Email, usuario.Nome);
             var isProduction = !Request.Host.Host.Contains("localhost");
@@ -101,6 +106,9 @@ namespace Learnly.Api.Controllers
 
             var auth = _loginAplicacao.ValidarLogin(usuario, loginDTO.Senha);
             if (!auth) return Unauthorized("Usuário ou senha inválido");
+
+            if (!usuario.EmailConfirmado)
+                throw new EmailNaoConfirmadoException();
 
             var accessToken = _loginAplicacao.GenerateToken(
                 usuario.Id, usuario.Email, usuario.Nome, TimeSpan.FromHours(1)
@@ -164,6 +172,49 @@ namespace Learnly.Api.Controllers
         {
             await _usuarioAplicacao.Aquecer();
             return Ok("warm");
+        }
+
+        [HttpPost("confirmar-email")]
+        public async Task<IActionResult> ConfirmarEmail([FromBody] ConfirmarEmailRequest body)
+        {
+            var usuario = await _usuarioAplicacao.ConfirmarEmail(body.Token);
+
+            var token = _loginAplicacao.GenerateToken(usuario.Id, usuario.Email, usuario.Nome);
+            var isProduction = !Request.Host.Host.Contains("localhost");
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = isProduction,
+                SameSite = isProduction ? SameSiteMode.None : SameSiteMode.Lax,
+                Expires = DateTime.UtcNow.AddHours(24)
+            };
+
+            Response.Cookies.Append("jwt", token, cookieOptions);
+            return Success(new { id = usuario.Id, nome = usuario.Nome, email = usuario.Email });
+        }
+
+        [HttpPost("reenviar-confirmacao")]
+        [EnableRateLimiting("login")]
+        public async Task<IActionResult> ReenviarConfirmacao([FromBody] EmailRequest body)
+        {
+            await _usuarioAplicacao.ReenviarConfirmacao(body.Email);
+            return Success(new { message = "Se houver uma conta pendente com esse e-mail, enviamos um novo link de confirmação." });
+        }
+
+        [HttpPost("esqueci-senha")]
+        [EnableRateLimiting("login")]
+        public async Task<IActionResult> EsqueciSenha([FromBody] EmailRequest body)
+        {
+            await _usuarioAplicacao.SolicitarRecuperacaoSenha(body.Email);
+            return Success(new { message = "Se houver uma conta com esse e-mail, enviamos as instruções de redefinição." });
+        }
+
+        [HttpPost("redefinir-senha")]
+        [EnableRateLimiting("login")]
+        public async Task<IActionResult> RedefinirSenha([FromBody] RedefinirSenhaRequest body)
+        {
+            await _usuarioAplicacao.RedefinirSenha(body.Token, body.Senha);
+            return Success(new { message = "Senha redefinida com sucesso." });
         }
     }
 }
