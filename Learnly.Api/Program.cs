@@ -33,6 +33,11 @@ builder.Services.AddHttpClient<GroqHttpClient>(client =>
     client.DefaultRequestHeaders.Add("Authorization", "Bearer " + builder.Configuration["ApiKeys:GroqIA"]);
 });
 
+builder.Services.AddHttpClient<MistralHttpClient>(client =>
+{
+    client.DefaultRequestHeaders.Add("Authorization", "Bearer " + builder.Configuration["ApiKeys:Mistral"]);
+});
+
 builder.Services.AddSingleton(new BuscaOptions
 {
     YouTubeKey = builder.Configuration["ApiKeys:YouTube"]

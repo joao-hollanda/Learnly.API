@@ -64,7 +64,7 @@ namespace Learnly.Api.Controllers
             };
 
             Response.Cookies.Append("jwt", token, cookieOptions);
-            return Success(new { message = "Login realizado com sucesso" });
+            return Success(new { id = usuario.Id, nome = usuario.Nome, email = usuario.Email });
         }
 
         [HttpPost("refresh")]
@@ -158,5 +158,12 @@ namespace Learnly.Api.Controllers
         [HttpGet("ping")]
         [DisableRateLimiting]
         public IActionResult Ping() => Ok("pong");
+
+        [HttpGet("warmup")]
+        public async Task<IActionResult> Warmup()
+        {
+            await _usuarioAplicacao.Aquecer();
+            return Ok("warm");
+        }
     }
 }

@@ -12,9 +12,7 @@ namespace Learnly.Application.Interfaces
 
         Task<Message?> EnviarMensagensAsync(ChatRequest request);
 
-        Task<List<ExplicacaoQuestao>> GerarExplicacoesAsync(
-            List<SimuladoQuestao> questoesErradas,
-            Dictionary<int, RespostaSimulado> respostas);
+        Task<List<ExplicacaoQuestao>> GerarExplicacoesAsync(List<SimuladoQuestao> questoes);
 
         Task<List<MaterialRecomendado>> GerarMateriaisAsync(Simulado simulado);
     }

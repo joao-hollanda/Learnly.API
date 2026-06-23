@@ -26,6 +26,9 @@ namespace Learnly.Application.Extensions
             services.AddScoped<IIAService, IAService>();
             services.AddScoped<IIAAplicacao, IAAplicacao>();
 
+            services.AddScoped<IRedacaoIAService, RedacaoIAService>();
+            services.AddScoped<IRedacaoAplicacao, RedacaoAplicacao>();
+
             services.AddScoped<IAmizadeAplicacao, AmizadeAplicacao>();
             services.AddScoped<IGrupoAplicacao, GrupoAplicacao>();
             services.AddScoped<IChatAplicacao, ChatAplicacao>();
@@ -37,6 +40,8 @@ namespace Learnly.Application.Extensions
         {
             services.AddScoped<IUsuarioRepositorio, UsuarioRepositorio>();
             services.AddScoped<ISimuladoRepositorio, SimuladoRepositorio>();
+            services.AddScoped<IExplicacaoQuestaoRepositorio, ExplicacaoQuestaoRepositorio>();
+            services.AddScoped<IRedacaoRepositorio, RedacaoRepositorio>();
             services.AddScoped<IPlanoRepositorio, PlanoRepositorio>();
             services.AddScoped<IMateriaRepositorio, MateriaRepositorio>();
             services.AddScoped<IHoraLancadaRepositorio, HoraLancadaRepositorio>();

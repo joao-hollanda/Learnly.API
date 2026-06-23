@@ -11,12 +11,18 @@ namespace Learnly.Application.DTOs
         public int MelhorSequencia { get; set; }
         public int MetaHorasSemana { get; set; }
 
+        public int TotalRedacoes { get; set; }
+        public int MediaRedacao { get; set; }
+        public int MelhorRedacao { get; set; }
+
         public ProgressoPlanoDto ProgressoPlano { get; set; } = new();
         public List<HorasDiaDto> HorasPorDia { get; set; } = new();
         public List<HorasDiaDto> MapaCalor { get; set; } = new();
         public List<DisciplinaDesempenhoDto> DesempenhoPorDisciplina { get; set; } = new();
         public List<EvolucaoSimuladoDto> EvolucaoSimulados { get; set; } = new();
         public List<MateriaProgressoDto> ProgressoPorMateria { get; set; } = new();
+        public List<EvolucaoRedacaoDto> EvolucaoRedacoes { get; set; } = new();
+        public List<CompetenciaMediaDto> MediaPorCompetencia { get; set; } = new();
     }
 
     public class ProgressoPlanoDto
@@ -47,6 +53,20 @@ namespace Learnly.Application.DTOs
         public DateTime Data { get; set; }
         public string Rotulo { get; set; }
         public decimal Nota { get; set; }
+    }
+
+    public class EvolucaoRedacaoDto
+    {
+        public DateTime Data { get; set; }
+        public string Rotulo { get; set; }
+        public int Nota { get; set; }
+    }
+
+    public class CompetenciaMediaDto
+    {
+        public int Numero { get; set; }
+        public string Nome { get; set; }
+        public int Media { get; set; }
     }
 
     public class MateriaProgressoDto

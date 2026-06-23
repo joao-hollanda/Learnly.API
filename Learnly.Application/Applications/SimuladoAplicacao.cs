@@ -13,17 +13,20 @@ namespace Learnly.Application.Applications
     public class SimuladoAplicacao : ISimuladoAplicacao
     {
         readonly ISimuladoRepositorio _simuladoRepositorio;
+        readonly IExplicacaoQuestaoRepositorio _explicacaoQuestaoRepositorio;
         readonly IUsuarioRepositorio _usuarioRepositorio;
         readonly IIAService _iaService;
         readonly IValidator<Simulado> _validator;
 
         public SimuladoAplicacao(
             ISimuladoRepositorio simuladoRepositorio,
+            IExplicacaoQuestaoRepositorio explicacaoQuestaoRepositorio,
             IUsuarioRepositorio usuarioRepositorio,
             IIAService iaService,
             IValidator<Simulado> validator)
         {
             _simuladoRepositorio = simuladoRepositorio;
+            _explicacaoQuestaoRepositorio = explicacaoQuestaoRepositorio;
             _usuarioRepositorio = usuarioRepositorio;
             _iaService = iaService;
             _validator = validator;
@@ -82,11 +85,6 @@ namespace Learnly.Application.Applications
             desempenho.QuantidadeDeQuestoes = simuladoBanco.Questoes.Count;
             desempenho.QuantidadeDeAcertos = respostas.Count(r => r.Alternativa.Correta);
 
-            simuladoBanco.Respostas = respostas;
-            simuladoBanco.Desempenho = desempenho;
-
-            simuladoBanco.Desempenho.Feedback = await _iaService.GerarFeedbackAsync(simuladoBanco);
-
             var questoesErradas = simuladoBanco.Questoes
                 .Where(q =>
                 {
@@ -99,18 +97,21 @@ namespace Learnly.Application.Applications
                 })
                 .ToList();
 
-            var respostasDict = respostas
-                .Where(r => r.Alternativa != null)
-                .ToDictionary(r => r.QuestaoId);
+            // Gera/persiste as explicações antes de anexar as respostas ao simulado rastreado:
+            // o SaveChanges do cache compartilha o mesmo DbContext e, com as respostas já anexadas,
+            // dispararia um insert prematuro delas, duplicando-as no save final.
+            var explicacoes = await ObterOuGerarExplicacoes(questoesErradas);
+            var mapaExplicacoes = explicacoes.ToDictionary(e => e.QuestaoId, e => e.Explicacao);
 
-            var respostasComExplicacao = await _iaService.GerarExplicacoesAsync(questoesErradas, respostasDict);
-
-            foreach (var explicacao in respostasComExplicacao)
+            foreach (var resposta in respostas)
             {
-                var respostaSimulado = respostas.FirstOrDefault(r => r.QuestaoId == explicacao.QuestaoId);
-                if (respostaSimulado != null)
-                    respostaSimulado.Explicacao = explicacao.Explicacao;
+                if (mapaExplicacoes.TryGetValue(resposta.QuestaoId, out var explicacao))
+                    resposta.Explicacao = explicacao;
             }
+
+            simuladoBanco.Respostas = respostas;
+            simuladoBanco.Desempenho = desempenho;
+            simuladoBanco.Desempenho.Feedback = await _iaService.GerarFeedbackAsync(simuladoBanco);
 
             try
             {
@@ -128,6 +129,32 @@ namespace Learnly.Application.Applications
             await _simuladoRepositorio.ResponderSimulado(simuladoBanco);
 
             return simuladoBanco;
+        }
+
+        public async Task<List<ExplicacaoQuestao>> ObterOuGerarExplicacoes(List<SimuladoQuestao> questoesErradas)
+        {
+            if (questoesErradas == null || !questoesErradas.Any())
+                return new List<ExplicacaoQuestao>();
+
+            var ids = questoesErradas.Select(q => q.QuestaoId).ToList();
+
+            var existentes = await _explicacaoQuestaoRepositorio.ObterPorQuestoes(ids);
+            var mapa = existentes.ToDictionary(e => e.QuestaoId);
+
+            var faltantes = questoesErradas
+                .Where(q => !mapa.ContainsKey(q.QuestaoId))
+                .ToList();
+
+            if (faltantes.Any())
+            {
+                var novas = await _iaService.GerarExplicacoesAsync(faltantes);
+                await _explicacaoQuestaoRepositorio.Salvar(novas);
+
+                foreach (var nova in novas)
+                    mapa[nova.QuestaoId] = nova;
+            }
+
+            return mapa.Values.ToList();
         }
 
         public async Task<Simulado> Obter(int simuladoId, int usuarioId)

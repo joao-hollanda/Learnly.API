@@ -10,5 +10,6 @@ namespace Learnly.Repository.Interfaces
         Task<Usuario> ObterPorNome(string nome);
         Task<Usuario> ObterPorEmail(string email);
         Task<IEnumerable<Usuario>> Listar(bool ativo);
+        Task Aquecer();
     }
 }

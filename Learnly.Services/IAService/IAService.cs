@@ -184,35 +184,24 @@ namespace Learnly.Services.IAService
             return await _groq.EnviarCompletaAsync(request);
         }
 
-        public async Task<List<ExplicacaoQuestao>> GerarExplicacoesAsync(
-            List<SimuladoQuestao> questoesErradas,
-            Dictionary<int, RespostaSimulado> respostas)
+        public async Task<List<ExplicacaoQuestao>> GerarExplicacoesAsync(List<SimuladoQuestao> questoes)
         {
             var questoesJson = JsonConvert.SerializeObject(
-                questoesErradas.Select(q =>
+                questoes.Select(q => new
                 {
-                    var respostaUsuario = respostas.GetValueOrDefault(q.QuestaoId);
-                    return new
+                    q.QuestaoId,
+                    q.Questao.Titulo,
+                    q.Questao.Contexto,
+                    Alternativas = q.Questao.Alternativas.Select(a => new
                     {
-                        q.QuestaoId,
-                        q.Questao.Titulo,
-                        q.Questao.Contexto,
-                        Alternativas = q.Questao.Alternativas.Select(a => new
-                        {
-                            a.AlternativaId,
-                            a.Texto,
-                            a.Correta
-                        }),
-                        RespostaUsuario = new
-                        {
-                            respostaUsuario?.AlternativaId,
-                            respostaUsuario?.Alternativa?.Texto
-                        },
-                        RespostaCorreta = q.Questao.Alternativas
-                            .Where(a => a.Correta)
-                            .Select(a => new { a.AlternativaId, a.Texto })
-                            .FirstOrDefault()
-                    };
+                        a.AlternativaId,
+                        a.Texto,
+                        a.Correta
+                    }),
+                    RespostaCorreta = q.Questao.Alternativas
+                        .Where(a => a.Correta)
+                        .Select(a => new { a.AlternativaId, a.Texto })
+                        .FirstOrDefault()
                 }),
                 Formatting.Indented
             );
@@ -222,9 +211,9 @@ namespace Learnly.Services.IAService
                 new()
                 {
                     role    = "system",
-                    content = $@"Para cada questão em que o aluno errou no simulado do ENEM, responda: por que está errada?
+                    content = $@"Para cada questão do simulado do ENEM, gere uma explicação didática completa.
 
-Liste cada questão recebida e explique de forma clara, direta e didática o motivo do erro, destacando por que a alternativa escolhida não está correta e qual seria o raciocínio adequado para chegar à resposta certa. Dirija o feedback diretamente ao aluno, usando VOCÊ como pronome.
+Explique de forma clara, direta e didática por que a alternativa correta é a correta e, em seguida, por que cada uma das demais alternativas está incorreta. A explicação NÃO deve assumir qual alternativa o aluno marcou: ela precisa ser útil para qualquer aluno, independentemente da alternativa escolhida. Dirija-se ao aluno usando VOCÊ como pronome.
 
 {questoesJson}
 
@@ -233,7 +222,7 @@ Responda usando EXCLUSIVAMENTE um array JSON no seguinte formato (sem comentári
 [
   {{
     ""QuestaoId"": <id da questão>,
-    ""Explicacao"": ""explique por que a resposta do aluno está errada e como chegar à correta, em linguagem acessível""
+    ""Explicacao"": ""explique por que a alternativa correta está certa e por que cada uma das demais está errada, em linguagem acessível""
   }}
 ]
 

@@ -15,12 +15,14 @@ namespace Learnly.Tests
     public class SimuladoAplicacaoTests
     {
         private readonly Mock<ISimuladoRepositorio> _simuladoRepo = new();
+        private readonly Mock<IExplicacaoQuestaoRepositorio> _explicacaoRepo = new();
         private readonly Mock<IUsuarioRepositorio> _usuarioRepo = new();
         private readonly Mock<IIAService> _iaService = new();
         private readonly Mock<IValidator<Simulado>> _validator = new();
 
         private SimuladoAplicacao CriarSut() => new(
             _simuladoRepo.Object,
+            _explicacaoRepo.Object,
             _usuarioRepo.Object,
             _iaService.Object,
             _validator.Object);
@@ -117,9 +119,9 @@ namespace Learnly.Tests
                 });
 
             _iaService.Setup(s => s.GerarFeedbackAsync(It.IsAny<Simulado>())).ReturnsAsync("feedback");
-            _iaService.Setup(s => s.GerarExplicacoesAsync(
-                    It.IsAny<List<SimuladoQuestao>>(),
-                    It.IsAny<Dictionary<int, RespostaSimulado>>()))
+            _explicacaoRepo.Setup(r => r.ObterPorQuestoes(It.IsAny<IEnumerable<int>>()))
+                .ReturnsAsync(new List<ExplicacaoQuestao>());
+            _iaService.Setup(s => s.GerarExplicacoesAsync(It.IsAny<List<SimuladoQuestao>>()))
                 .ReturnsAsync(new List<ExplicacaoQuestao>());
             _iaService.Setup(s => s.GerarMateriaisAsync(It.IsAny<Simulado>()))
                 .ReturnsAsync(new List<MaterialRecomendado>());
@@ -162,9 +164,9 @@ namespace Learnly.Tests
                 .ReturnsAsync(new Alternativa { AlternativaId = 1, Letra = "A" });
 
             _iaService.Setup(s => s.GerarFeedbackAsync(It.IsAny<Simulado>())).ReturnsAsync("feedback");
-            _iaService.Setup(s => s.GerarExplicacoesAsync(
-                    It.IsAny<List<SimuladoQuestao>>(),
-                    It.IsAny<Dictionary<int, RespostaSimulado>>()))
+            _explicacaoRepo.Setup(r => r.ObterPorQuestoes(It.IsAny<IEnumerable<int>>()))
+                .ReturnsAsync(new List<ExplicacaoQuestao>());
+            _iaService.Setup(s => s.GerarExplicacoesAsync(It.IsAny<List<SimuladoQuestao>>()))
                 .ReturnsAsync(new List<ExplicacaoQuestao>());
             _iaService.Setup(s => s.GerarMateriaisAsync(It.IsAny<Simulado>()))
                 .ThrowsAsync(new HttpRequestException("YouTube fora do ar"));

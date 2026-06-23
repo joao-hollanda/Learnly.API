@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Learnly.Repository.Migrations
 {
     [DbContext(typeof(LearnlyContexto))]
-    partial class LearnlyContextoModelSnapshot : ModelSnapshot
+    [Migration("20260618213604_ExplicacaoQuestaoCache")]
+    partial class ExplicacaoQuestaoCache
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -426,58 +429,6 @@ namespace Learnly.Repository.Migrations
                     b.HasIndex("PlanoId");
 
                     b.ToTable("PlanoMaterias", (string)null);
-                });
-
-            modelBuilder.Entity("Learnly.Domain.Entities.Redacoes.Redacao", b =>
-                {
-                    b.Property<int>("RedacaoId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("RedacaoId"));
-
-                    b.Property<string>("ComentariosJson")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("Data")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("NotaC1")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("NotaC2")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("NotaC3")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("NotaC4")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("NotaC5")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("NotaFinal")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Tema")
-                        .IsRequired()
-                        .HasMaxLength(300)
-                        .HasColumnType("character varying(300)");
-
-                    b.Property<string>("Texto")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("UsuarioId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("RedacaoId");
-
-                    b.HasIndex("UsuarioId");
-
-                    b.ToTable("Redacoes", (string)null);
                 });
 
             modelBuilder.Entity("Learnly.Domain.Entities.Simulados.Alternativa", b =>
@@ -937,15 +888,6 @@ namespace Learnly.Repository.Migrations
                     b.Navigation("Materia");
 
                     b.Navigation("Plano");
-                });
-
-            modelBuilder.Entity("Learnly.Domain.Entities.Redacoes.Redacao", b =>
-                {
-                    b.HasOne("Learnly.Domain.Entities.Usuario", null)
-                        .WithMany()
-                        .HasForeignKey("UsuarioId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
                 });
 
             modelBuilder.Entity("Learnly.Domain.Entities.Simulados.Alternativa", b =>

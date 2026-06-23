@@ -12,6 +12,7 @@ namespace Learnly.Tests
         private readonly Mock<IPlanoRepositorio> _planoRepo = new();
         private readonly Mock<IHoraLancadaRepositorio> _horaRepo = new();
         private readonly Mock<IUsuarioRepositorio> _usuarioRepo = new();
+        private readonly Mock<IRedacaoRepositorio> _redacaoRepo = new();
 
         private DesempenhoAplicacao CriarSut()
         {
@@ -25,12 +26,14 @@ namespace Learnly.Tests
             _simuladoRepo.Setup(r => r.ListarNotas(1)).ReturnsAsync(new List<Simulado>());
             _simuladoRepo.Setup(r => r.ContarTotal(1)).ReturnsAsync(0);
             _planoRepo.Setup(r => r.ObterPlanoAtivo(1)).ReturnsAsync((Learnly.Domain.Entities.PlanoEstudo)null);
+            _redacaoRepo.Setup(r => r.Listar(1)).ReturnsAsync(new List<Learnly.Domain.Entities.Redacoes.Redacao>());
 
             return new(
                 _simuladoRepo.Object,
                 _planoRepo.Object,
                 _horaRepo.Object,
-                _usuarioRepo.Object);
+                _usuarioRepo.Object,
+                _redacaoRepo.Object);
         }
 
         [Fact]

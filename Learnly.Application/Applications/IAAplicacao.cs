@@ -195,11 +195,7 @@ armamentos/explosivos. Reforce sempre que isso pode gerar consequências legais.
                 })
                 .ToList();
 
-            var respostas = simulado.Respostas
-                .Where(r => r.Alternativa != null)
-                .ToDictionary(r => r.QuestaoId);
-
-            return await _iaService.GerarExplicacoesAsync(questoesErradas, respostas);
+            return await _simuladoAplicacao.ObterOuGerarExplicacoes(questoesErradas);
         }
 
         private async Task<string> ExecutarFerramentaAsync(string nome, string args, int usuarioId)

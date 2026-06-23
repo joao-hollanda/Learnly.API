@@ -12,5 +12,6 @@ namespace Learnly.Application.Interfaces
         Task Atualizar(Usuario usuarioDTO);
         Task Desativar(int usuarioId);
         Task Reativar(int usuarioId);
+        Task Aquecer();
     }
 }

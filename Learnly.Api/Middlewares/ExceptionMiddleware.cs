@@ -5,6 +5,7 @@ using Learnly.Domain.Exceptions.Autenticacao;
 using Learnly.Domain.Exceptions.Comuns;
 using Learnly.Domain.Exceptions.Eventos;
 using Learnly.Domain.Exceptions.Planos;
+using Learnly.Domain.Exceptions.Redacoes;
 using Learnly.Domain.Exceptions.Simulados;
 using Learnly.Domain.Exceptions.Social;
 using Learnly.Domain.Exceptions.Usuarios;
@@ -80,6 +81,9 @@ namespace Learnly.Api.Middlewares
                 RespostasNaoInformadasException e => (HttpStatusCode.BadRequest, e.Message),
                 QuestaoNaoEncontradaException e => (HttpStatusCode.NotFound, e.Message),
                 AlternativaNaoEncontradaException e => (HttpStatusCode.NotFound, e.Message),
+
+                RedacaoNaoEncontradaException e => (HttpStatusCode.NotFound, e.Message),
+                RedacaoNaoAutorizadaException e => (HttpStatusCode.Forbidden, e.Message),
 
                 EventoNaoEncontradoException e => (HttpStatusCode.NotFound, e.Message),
                 EventoDataInvalidaException e => (HttpStatusCode.BadRequest, e.Message),

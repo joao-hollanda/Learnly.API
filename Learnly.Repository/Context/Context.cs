@@ -5,8 +5,10 @@ using Learnly.Repository.Config;
 using Learnly.Infra.Data.Configurations;
 using Learnly.Repository.Config.Simulados;
 using Learnly.Repository.Config.Social;
+using Learnly.Repository.Config.Redacoes;
 using Learnly.Domain.Entities.Planos;
 using Learnly.Domain.Entities.Social;
+using Learnly.Domain.Entities.Redacoes;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 public class LearnlyContexto : DbContext
@@ -23,6 +25,7 @@ public class LearnlyContexto : DbContext
     public DbSet<SimuladoQuestao> SimuladoQuestoes { get; set; }
     public DbSet<RespostaSimulado> RespostasSimulado { get; set; }
     public DbSet<Alternativa> Alternativas { get; set; }
+    public DbSet<ExplicacaoQuestao> ExplicacoesQuestao { get; set; }
 
     public DbSet<Amizade> Amizades { get; set; }
     public DbSet<Grupo> Grupos { get; set; }
@@ -30,6 +33,8 @@ public class LearnlyContexto : DbContext
     public DbSet<Conversa> Conversas { get; set; }
     public DbSet<ConversaParticipante> ConversaParticipantes { get; set; }
     public DbSet<Mensagem> Mensagens { get; set; }
+
+    public DbSet<Redacao> Redacoes { get; set; }
 
 
     public LearnlyContexto(DbContextOptions<LearnlyContexto> options)
@@ -45,6 +50,7 @@ public class LearnlyContexto : DbContext
         modelBuilder.ApplyConfiguration(new QuestaoConfig());
         modelBuilder.ApplyConfiguration(new SimuladoQuestaoConfig());
         modelBuilder.ApplyConfiguration(new RespostaSimuladoConfig());
+        modelBuilder.ApplyConfiguration(new ExplicacaoQuestaoConfig());
         modelBuilder.ApplyConfiguration(new PlanoEstudoConfig());
         modelBuilder.ApplyConfiguration(new MateriaConfig());
         modelBuilder.ApplyConfiguration(new PlanoMateriaConfig());
@@ -57,6 +63,7 @@ public class LearnlyContexto : DbContext
         modelBuilder.ApplyConfiguration(new ConversaConfig());
         modelBuilder.ApplyConfiguration(new ConversaParticipanteConfig());
         modelBuilder.ApplyConfiguration(new MensagemConfig());
+        modelBuilder.ApplyConfiguration(new RedacaoConfig());
 
         foreach (var entityType in modelBuilder.Model.GetEntityTypes())
         {

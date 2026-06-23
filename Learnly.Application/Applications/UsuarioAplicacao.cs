@@ -90,6 +90,8 @@ namespace Learnly.Application.Applications
             return usuarioDominio;
         }
 
+        public Task Aquecer() => _usuarioRepositorio.Aquecer();
+
         public async Task<Usuario> ObterPorEmail(string email)
         {
             var usuarioDominio = await _usuarioRepositorio.ObterPorEmail(email);

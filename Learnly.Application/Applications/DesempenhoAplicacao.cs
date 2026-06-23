@@ -1,6 +1,7 @@
 using Learnly.Application.DTOs;
 using Learnly.Application.Interfaces;
 using Learnly.Domain.Entities.Planos;
+using Learnly.Domain.Entities.Redacoes;
 using Learnly.Domain.Entities.Simulados;
 using Learnly.Domain.Exceptions.Usuarios;
 using Learnly.Repository.Interfaces;
@@ -15,17 +16,20 @@ namespace Learnly.Application.Applications
         readonly IPlanoRepositorio _planoRepositorio;
         readonly IHoraLancadaRepositorio _horaLancadaRepositorio;
         readonly IUsuarioRepositorio _usuarioRepositorio;
+        readonly IRedacaoRepositorio _redacaoRepositorio;
 
         public DesempenhoAplicacao(
             ISimuladoRepositorio simuladoRepositorio,
             IPlanoRepositorio planoRepositorio,
             IHoraLancadaRepositorio horaLancadaRepositorio,
-            IUsuarioRepositorio usuarioRepositorio)
+            IUsuarioRepositorio usuarioRepositorio,
+            IRedacaoRepositorio redacaoRepositorio)
         {
             _simuladoRepositorio = simuladoRepositorio;
             _planoRepositorio = planoRepositorio;
             _horaLancadaRepositorio = horaLancadaRepositorio;
             _usuarioRepositorio = usuarioRepositorio;
+            _redacaoRepositorio = redacaoRepositorio;
         }
 
         public async Task<DashboardDto> ObterDashboard(int usuarioId)
@@ -119,6 +123,29 @@ namespace Learnly.Application.Applications
                 metaHorasSemana = planoAtivo.HorasPorSemana;
             }
 
+            var redacoes = await _redacaoRepositorio.Listar(usuarioId);
+
+            var evolucaoRedacoes = redacoes
+                .OrderBy(r => r.Data)
+                .Select(r => new EvolucaoRedacaoDto
+                {
+                    Data = r.Data,
+                    Rotulo = r.Data.ToString("dd/MM"),
+                    Nota = r.NotaFinal
+                })
+                .ToList();
+
+            var mediaPorCompetencia = redacoes.Any()
+                ? new List<CompetenciaMediaDto>
+                {
+                    new() { Numero = 1, Nome = "Norma culta", Media = (int)Math.Round(redacoes.Average(r => r.NotaC1)) },
+                    new() { Numero = 2, Nome = "Compreensão do tema", Media = (int)Math.Round(redacoes.Average(r => r.NotaC2)) },
+                    new() { Numero = 3, Nome = "Argumentação", Media = (int)Math.Round(redacoes.Average(r => r.NotaC3)) },
+                    new() { Numero = 4, Nome = "Coesão textual", Media = (int)Math.Round(redacoes.Average(r => r.NotaC4)) },
+                    new() { Numero = 5, Nome = "Proposta de intervenção", Media = (int)Math.Round(redacoes.Average(r => r.NotaC5)) }
+                }
+                : new List<CompetenciaMediaDto>();
+
             return new DashboardDto
             {
                 HorasEstudadasSemana = horasSemana,
@@ -134,7 +161,12 @@ namespace Learnly.Application.Applications
                 MapaCalor = mapaCalor,
                 DesempenhoPorDisciplina = desempenhoPorDisciplina,
                 EvolucaoSimulados = evolucao,
-                ProgressoPorMateria = progressoPorMateria
+                ProgressoPorMateria = progressoPorMateria,
+                TotalRedacoes = redacoes.Count,
+                MediaRedacao = redacoes.Any() ? (int)Math.Round(redacoes.Average(r => r.NotaFinal)) : 0,
+                MelhorRedacao = redacoes.Any() ? redacoes.Max(r => r.NotaFinal) : 0,
+                EvolucaoRedacoes = evolucaoRedacoes,
+                MediaPorCompetencia = mediaPorCompetencia
             };
         }
 
