@@ -3,6 +3,7 @@ using System.Text;
 using System.Threading.RateLimiting;
 using FluentValidation;
 using FluentValidation.AspNetCore;
+using Learnly.Api.BackgroundServices;
 using Learnly.Api.Hubs;
 using Learnly.Application.Extensions;
 using Learnly.Application.Interfaces;
@@ -51,6 +52,8 @@ builder.Services.AddSingleton(new EmailOptions
     From = builder.Configuration["Email:From"] ?? "Learnly <onboarding@resend.dev>"
 });
 builder.Services.AddHttpClient<IEmailService, EmailService>();
+
+builder.Services.AddHostedService<LembreteSequenciaService>();
 #endregion
 
 #region CORS

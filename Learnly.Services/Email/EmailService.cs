@@ -34,9 +34,20 @@ namespace Learnly.Services.Email
             return EnviarAsync(para, "Redefinição de senha · Learnly", corpo, "Redefinir senha", link);
         }
 
-        private async Task EnviarAsync(string para, string assunto, string corpoHtml, string textoBotao, string link)
+        public Task EnviarLembreteSequenciaAsync(string para, string nome, int dias, string linkPlano, string linkDescadastro)
         {
-            var html = MontarHtml(corpoHtml, textoBotao, link);
+            var corpo = $@"
+                <p style=""margin:0 0 16px"">Olá, {nome}! Sua sequência de <strong>{dias} dias</strong> de estudo está em risco — você ainda não registrou horas hoje.</p>
+                <p style=""margin:0 0 24px"">Mantenha o ritmo: lance seu estudo de hoje antes da meia-noite para não perder a sequência.</p>";
+
+            var rodape = $@"<a href=""{linkDescadastro}"" style=""color:#94a3b8"">Não quero mais receber estes lembretes</a>";
+
+            return EnviarAsync(para, $"Sua sequência de {dias} dias termina hoje · Learnly", corpo, "Lançar horas de hoje", linkPlano, rodape);
+        }
+
+        private async Task EnviarAsync(string para, string assunto, string corpoHtml, string textoBotao, string link, string rodapeExtra = null)
+        {
+            var html = MontarHtml(corpoHtml, textoBotao, link, rodapeExtra);
 
             if (string.IsNullOrWhiteSpace(_options.ApiKey))
             {
@@ -68,7 +79,7 @@ namespace Learnly.Services.Email
             }
         }
 
-        private static string MontarHtml(string corpo, string textoBotao, string link) => $@"
+        private static string MontarHtml(string corpo, string textoBotao, string link, string rodapeExtra = null) => $@"
 <!DOCTYPE html>
 <html lang=""pt-BR"">
 <body style=""margin:0;background:#f1f5f9;font-family:Arial,Helvetica,sans-serif;color:#1e293b"">
@@ -81,7 +92,7 @@ namespace Learnly.Services.Email
       <a href=""{link}"" style=""display:inline-block;background:#2563eb;color:#fff;text-decoration:none;font-weight:700;padding:12px 28px;border-radius:8px"">{textoBotao}</a>
       <p style=""margin:28px 0 0;font-size:12px;color:#64748b;line-height:1.6"">Se o botão não funcionar, copie e cole este endereço no navegador:<br><span style=""color:#2563eb;word-break:break-all"">{link}</span></p>
     </div>
-    <p style=""text-align:center;margin:20px 0 0;font-size:12px;color:#94a3b8"">© Learnly · Plataforma de estudos para o ENEM</p>
+    <p style=""text-align:center;margin:20px 0 0;font-size:12px;color:#94a3b8"">© Learnly · Plataforma de estudos para o ENEM{(string.IsNullOrEmpty(rodapeExtra) ? "" : $"<br>{rodapeExtra}")}</p>
   </div>
 </body>
 </html>";

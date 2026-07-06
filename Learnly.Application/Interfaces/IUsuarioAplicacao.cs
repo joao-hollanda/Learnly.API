@@ -16,6 +16,7 @@ namespace Learnly.Application.Interfaces
         Task Aquecer();
         Task<Usuario> ConfirmarEmail(string token);
         Task ReenviarConfirmacao(string email);
+        Task DescadastrarEmails(string token);
         Task SolicitarRecuperacaoSenha(string email);
         Task RedefinirSenha(string token, string novaSenha);
     }

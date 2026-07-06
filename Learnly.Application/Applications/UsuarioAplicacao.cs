@@ -124,6 +124,23 @@ namespace Learnly.Application.Applications
             await _usuarioRepositorio.Atualizar(usuario);
         }
 
+        public async Task DescadastrarEmails(string token)
+        {
+            var principal = _loginAplicacao.ValidarToken(token);
+            if (principal == null || principal.FindFirst("tipo")?.Value != "unsubscribe")
+                throw new TokenInvalidoException();
+
+            if (!int.TryParse(principal.FindFirst("id")?.Value, out var id))
+                throw new TokenInvalidoException();
+
+            var usuario = await _usuarioRepositorio.Obter(id, true);
+            if (usuario == null)
+                throw new TokenInvalidoException();
+
+            usuario.AceitaEmails = false;
+            await _usuarioRepositorio.Atualizar(usuario);
+        }
+
         private async Task EnviarEmailConfirmacao(Usuario usuario)
         {
             var token = _loginAplicacao.GerarTokenAcao(usuario.Id, usuario.Email, "confirmacao", ValidadeConfirmacao);

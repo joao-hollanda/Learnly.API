@@ -4,5 +4,6 @@ namespace Learnly.Application.Interfaces
     {
         Task EnviarConfirmacaoAsync(string para, string nome, string link);
         Task EnviarRecuperacaoSenhaAsync(string para, string nome, string link);
+        Task EnviarLembreteSequenciaAsync(string para, string nome, int dias, string linkPlano, string linkDescadastro);
     }
 }

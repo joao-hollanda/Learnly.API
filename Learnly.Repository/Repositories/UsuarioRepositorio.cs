@@ -57,6 +57,14 @@ namespace Learnly.Repository
             return await _contexto.Usuarios.Where(u => u.StatusConta == ativo).ToListAsync();
         }
 
+        public async Task<List<Usuario>> ListarParaLembreteEmail()
+        {
+            return await _contexto.Usuarios
+                .AsNoTracking()
+                .Where(u => u.StatusConta && u.EmailConfirmado && u.AceitaEmails)
+                .ToListAsync();
+        }
+
         public async Task Aquecer()
         {
             await _contexto.Database.ExecuteSqlRawAsync("SELECT 1");

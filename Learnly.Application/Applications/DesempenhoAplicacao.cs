@@ -106,7 +106,8 @@ namespace Learnly.Application.Applications
                     Titulo = planoAtivo.Titulo,
                     HorasTotais = horasTotais,
                     HorasConcluidas = horasConcluidas,
-                    Percentual = Percentual(horasConcluidas, horasTotais)
+                    Percentual = Percentual(horasConcluidas, horasTotais),
+                    DataFim = planoAtivo.DataFim
                 };
 
                 progressoPorMateria = materias

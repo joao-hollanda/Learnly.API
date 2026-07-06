@@ -31,6 +31,7 @@ namespace Learnly.Application.DTOs
         public int HorasConcluidas { get; set; }
         public int HorasTotais { get; set; }
         public int Percentual { get; set; }
+        public DateTime? DataFim { get; set; }
     }
 
     public class HorasDiaDto

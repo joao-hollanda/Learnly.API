@@ -11,6 +11,7 @@ namespace Learnly.Repository.Interfaces
         Task<Usuario> ObterPorEmail(string email);
         Task<bool> EmailEmUso(string email, int ignorarId = 0);
         Task<IEnumerable<Usuario>> Listar(bool ativo);
+        Task<List<Usuario>> ListarParaLembreteEmail();
         Task Aquecer();
     }
 }

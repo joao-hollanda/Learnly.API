@@ -29,6 +29,10 @@ namespace Learnly.Repository.Config
                             .IsRequired()
                             .HasDefaultValue(false);
 
+                     builder.Property(u => u.AceitaEmails)
+                            .IsRequired()
+                            .HasDefaultValue(true);
+
                      builder.HasIndex(u => u.Email)
                             .IsUnique();
 

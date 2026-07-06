@@ -10,15 +10,17 @@ namespace Learnly.Domain.Entities
         public DateOnly DataCriacao { get; set; }
         public bool StatusConta { get; set; }
         public bool EmailConfirmado { get; set; }
+        public bool AceitaEmails { get; set; }
         public List<PlanoEstudo> PlanoEstudo { get; set; }
 
         public List<Simulado> Simulados { get; set; }
 
-        // public PlanoAssinatura Plano { get; set; } 
+        // public PlanoAssinatura Plano { get; set; }
 
         public Usuario()
         {
             StatusConta = true;
+            AceitaEmails = true;
             DataCriacao = DateOnly.FromDateTime(DateTime.UtcNow);
             // Plano = PlanoAssinatura.Gratuito;
         }

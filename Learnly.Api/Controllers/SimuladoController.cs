@@ -55,8 +55,10 @@ namespace Learnly.Api.Controllers
 
             return Success(new SimuladoCorrigido
             {
+                SimuladoId = simulado.SimuladoId,
                 Nota = simulado.NotaFinal,
-                Desempenho = simulado.Desempenho
+                Desempenho = simulado.Desempenho,
+                MateriaisRecomendados = simulado.MateriaisRecomendados
             });
         }
 

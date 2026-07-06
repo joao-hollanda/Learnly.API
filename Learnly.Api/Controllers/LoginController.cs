@@ -193,6 +193,32 @@ namespace Learnly.Api.Controllers
             return Success(new { id = usuario.Id, nome = usuario.Nome, email = usuario.Email });
         }
 
+        [HttpGet("descadastrar-emails")]
+        [AllowAnonymous]
+        public async Task<IActionResult> DescadastrarEmails([FromQuery] string token)
+        {
+            string mensagem;
+            try
+            {
+                await _usuarioAplicacao.DescadastrarEmails(token);
+                mensagem = "Pronto! Você não receberá mais lembretes por e-mail.";
+            }
+            catch
+            {
+                mensagem = "Não foi possível processar o link — ele pode ter expirado.";
+            }
+
+            var html = $@"<!DOCTYPE html><html lang=""pt-BR""><head><meta charset=""utf-8""><meta name=""viewport"" content=""width=device-width, initial-scale=1""><title>Learnly</title></head>
+<body style=""margin:0;background:#f1f5f9;font-family:Arial,Helvetica,sans-serif;color:#1e293b;display:flex;align-items:center;justify-content:center;min-height:100vh"">
+  <div style=""max-width:420px;text-align:center;background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:40px 32px"">
+    <div style=""color:#0f1f5c;font-size:22px;font-weight:800;margin-bottom:16px"">Learnly</div>
+    <p style=""font-size:15px;line-height:1.6;margin:0"">{mensagem}</p>
+  </div>
+</body></html>";
+
+            return Content(html, "text/html");
+        }
+
         [HttpPost("reenviar-confirmacao")]
         [EnableRateLimiting("login")]
         public async Task<IActionResult> ReenviarConfirmacao([FromBody] EmailRequest body)
