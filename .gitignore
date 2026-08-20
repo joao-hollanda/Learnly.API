@@ -3,6 +3,7 @@
 
 **/bin/
 **/obj/
+**/TestResults/
 **.lscache
 
 !**/appsettings.Example.json

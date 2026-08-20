@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RunSettings>
+  <DataCollectionRunSettings>
+    <DataCollectors>
+      <DataCollector friendlyName="XPlat code coverage">
+        <Configuration>
+          <Format>cobertura</Format>
+          <Exclude>[Learnly.Repository]*</Exclude>
+          <ExcludeByAttribute>GeneratedCodeAttribute</ExcludeByAttribute>
+          <SkipAutoProps>true</SkipAutoProps>
+        </Configuration>
+      </DataCollector>
+
+      <DataCollector friendlyName="Code Coverage">
+        <Configuration>
+          <CodeCoverage>
+            <ModulePaths>
+              <Include>
+                <ModulePath>.*[\\/]Learnly\.[^\\/]*\.dll$</ModulePath>
+              </Include>
+              <Exclude>
+                <ModulePath>.*[\\/]Learnly\.Repository\.dll$</ModulePath>
+                <ModulePath>.*[\\/]Learnly\.Tests\.dll$</ModulePath>
+              </Exclude>
+            </ModulePaths>
+            <CollectFromChildProcesses>True</CollectFromChildProcesses>
+          </CodeCoverage>
+        </Configuration>
+      </DataCollector>
+    </DataCollectors>
+  </DataCollectionRunSettings>
+</RunSettings>
