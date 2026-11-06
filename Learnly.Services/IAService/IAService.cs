@@ -157,7 +157,7 @@ namespace Learnly.Services.IAService
 
             var requestBody = new
             {
-                model = "llama-3.3-70b-versatile",
+                model = "openai/gpt-oss-120b",
                 messages,
                 temperature = 0.2,
                 response_format = new { type = "json_object" },
