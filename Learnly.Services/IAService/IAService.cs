@@ -103,7 +103,7 @@ namespace Learnly.Services.IAService
 
             var request = new ChatRequest
             {
-                model = "llama-3.3-70b-versatile",
+                model = "openai/gpt-oss-120b",
                 messages = mensagens,
                 temperature = 0.4,
                 max_tokens = 600
@@ -232,7 +232,7 @@ Não adicione quaisquer textos fora desse objeto JSON."
 
             var requestBody = new
             {
-                model = "llama-3.3-70b-versatile",
+                model = "openai/gpt-oss-120b",
                 messages = mensagens,
                 temperature = 0.2,
             };
@@ -316,7 +316,7 @@ Você recomenda APENAS videoaulas do YouTube, específicas e realmente úteis pa
 
             var requestBody = new
             {
-                model = "llama-3.3-70b-versatile",
+                model = "openai/gpt-oss-120b",
                 messages = mensagens,
                 temperature = 0.3,
                 response_format = new { type = "json_object" },

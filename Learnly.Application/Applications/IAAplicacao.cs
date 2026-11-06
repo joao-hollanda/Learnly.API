@@ -98,7 +98,7 @@ armamentos/explosivos. Reforce sempre que isso pode gerar consequências legais.
             var resposta = await _iaService.EnviarMensagensAsync(new ChatRequest
             {
                 messages = mensagensTruncadas,
-                model = "qwen/qwen3-32b",
+                model = "openai/gpt-oss-120b",
                 temperature = 0.3,
                 tools = ChatbotTools.ObterFerramentas(),
                 tool_choice = "auto",
@@ -170,7 +170,7 @@ armamentos/explosivos. Reforce sempre que isso pode gerar consequências legais.
             var respostaFinal = await _iaService.EnviarMensagensAsync(new ChatRequest
             {
                 messages = mensagensTruncadas,
-                model = "qwen/qwen3-32b",
+                model = "openai/gpt-oss-120b",
                 temperature = 0.3,
                 tools = null,
                 tool_choice = null,
@@ -449,7 +449,7 @@ armamentos/explosivos. Reforce sempre que isso pode gerar consequências legais.
             {
                 var resposta = await _iaService.EnviarMensagensAsync(new ChatRequest
                 {
-                    model = "llama-3.1-8b-instant",
+                    model = "openai/gpt-oss-20b",
                     temperature = 0.3,
                     max_tokens = 300,
                     messages = new List<Message>
